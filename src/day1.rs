@@ -114,8 +114,11 @@ pub fn puzzle() {
 
     let lines:Vec<String> = reader.lines().map( |line| line.unwrap() ).collect();
     let (left, right) = read_input(lines.iter().map( |line| line.as_str() ));
+    
     let total_distance = calculate_total_distance(&left, &right);
-
     println!("Day 1, Part 1: Sum of distance of sorted pairs is {}", total_distance);
+
+    let total_similarity = calculate_similarity(&left, &right);
+    println!("Day 1, Part 2: Sum of equal values is {}", total_similarity);
 
 }
