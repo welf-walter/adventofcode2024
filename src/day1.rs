@@ -72,6 +72,35 @@ fn test_distance() {
 }
 
 //////////////////////////////////////////
+/// Similarity
+//////////////////////////////////////////
+
+fn calculate_similarity(left:&Vec<LocationID>, right:&Vec<LocationID>) -> LocationID {
+    let mut similarity = 0;
+    for l in left.iter() {
+        for r in right.iter() {
+            if *l == *r {
+                similarity += *l;
+            }
+        }
+    }
+    similarity
+}
+
+#[test]
+fn test_similarity() {
+    let input1 =
+"3   4
+4   3
+2   5
+1   3
+3   9
+3   3";
+    let (left, right) = read_input(input1.split("\n"));
+    assert_eq!(calculate_similarity(&left, &right), 31);
+}
+
+//////////////////////////////////////////
 /// Puzzle
 //////////////////////////////////////////
 
