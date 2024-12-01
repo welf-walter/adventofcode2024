@@ -1,4 +1,3 @@
-use std::vec;
 
 type LocationID = u32;
 
@@ -37,6 +36,8 @@ fn test_read_input()
 /// Distance
 //////////////////////////////////////////
 
+use std::cmp;
+
 fn calculate_total_distance(left_in:&Vec<LocationID>, right_in:&Vec<LocationID>) -> LocationID {
     let mut left_sorted = left_in.clone();
     left_sorted.sort();
@@ -48,8 +49,9 @@ fn calculate_total_distance(left_in:&Vec<LocationID>, right_in:&Vec<LocationID>)
     loop {
         let l = liter.next();
         let r = riter.next();
+        //println!("({:?},{:?})", l,r);
         match (l,r) {
-            (Some(left_value), Some(right_value)) => total_distance += right_value - left_value,
+            (Some(left_value), Some(right_value)) => total_distance += cmp::max(left_value, right_value) - cmp::min(left_value, right_value),
             (None, None) => return total_distance,
             (_, _) => panic!("Unexpected ({:?},{:?})", l,r)
         }
@@ -73,6 +75,18 @@ fn test_distance() {
 /// Puzzle
 //////////////////////////////////////////
 
+use std::fs::File;
+use std::io::BufRead;
+use std::io::BufReader;
+
 pub fn puzzle() {
-    ;;;
+    let file = File::open("input/day1.txt").expect("Could not open input/day1.txt");
+    let reader = BufReader::new(file);
+
+    let lines:Vec<String> = reader.lines().map( |line| line.unwrap() ).collect();
+    let (left, right) = read_input(lines.iter().map( |line| line.as_str() ));
+    let total_distance = calculate_total_distance(&left, &right);
+
+    println!("Day 1, Part 1: Sum of distance of sorted pairs is {}", total_distance);
+
 }
