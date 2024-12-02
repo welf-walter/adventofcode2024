@@ -1,4 +1,5 @@
 mod day1;
+mod day2;
 
 const NUMBER_OF_DAYS : u32 = 1;
 
