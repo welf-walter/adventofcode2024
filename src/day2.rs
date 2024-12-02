@@ -1,5 +1,5 @@
 
-type Level = u32;
+type Level = i32;
 
 //////////////////////////////////////////
 /// Report
@@ -14,32 +14,34 @@ type Reports = Vec<Report>;
 
 impl Report {
 
-    fn is_slowly_increasing(&self) -> bool {
+    fn is_slowly_changing(&self, min_diff:Level, max_diff:Level, tolerate: u32) -> bool {
+        let mut tol = tolerate;
         let mut iter = self.levels.iter();
         let mut last = iter.next().unwrap();
         for next in iter {
-            if next <= last { return false; }
-            if next - last > 3 { return false; }
+            if next - last > max_diff { 
+                if tol > 0 {
+                    tol -= 1;
+                    continue;
+                }
+                return false; 
+            }
+            if next - last < min_diff { 
+                if tol > 0 {
+                    tol -= 1;
+                    continue;
+                }
+                return false; 
+            }
             last = next;
         }
         true
     }
 
-    fn is_slowly_decreasing(&self) -> bool {
-        let mut iter = self.levels.iter();
-        let mut last = iter.next().unwrap();
-        for next in iter {
-            if next >= last { return false; }
-            if last - next > 3 { return false; }
-            last = next;
-        }
-        true
-    }
-
-    fn is_safe(&self) -> bool {
-        self.is_slowly_increasing()
+    fn is_safe(&self, tolerate: u32) -> bool {
+        self.is_slowly_changing(1, 3, tolerate)
         ||
-        self.is_slowly_decreasing()
+        self.is_slowly_changing(-3, -1, tolerate)
     }
 }
 
@@ -53,12 +55,19 @@ fn test_is_safe() {
 8 6 4 4 1
 1 3 6 7 9";
     let reports = parse_reports(input1.split("\n"));
-    assert_eq!(reports[0].is_safe(), true);
-    assert_eq!(reports[1].is_safe(), false);
-    assert_eq!(reports[2].is_safe(), false);
-    assert_eq!(reports[3].is_safe(), false);
-    assert_eq!(reports[4].is_safe(), false);
-    assert_eq!(reports[5].is_safe(), true);
+    assert_eq!(reports[0].is_safe(0), true);
+    assert_eq!(reports[1].is_safe(0), false);
+    assert_eq!(reports[2].is_safe(0), false);
+    assert_eq!(reports[3].is_safe(0), false);
+    assert_eq!(reports[4].is_safe(0), false);
+    assert_eq!(reports[5].is_safe(0), true);
+
+    assert_eq!(reports[0].is_safe(1), true);
+    assert_eq!(reports[1].is_safe(1), false);
+    assert_eq!(reports[2].is_safe(1), false);
+    assert_eq!(reports[3].is_safe(1), true);
+    assert_eq!(reports[4].is_safe(1), true);
+    assert_eq!(reports[5].is_safe(1), true);
 }
 
 //////////////////////////////////////////
@@ -117,7 +126,10 @@ pub fn puzzle() {
     let lines:Vec<String> = reader.lines().map( |line| line.unwrap() ).collect();
     let reports = parse_reports(lines.iter().map( |line| line.as_str() ));
     
-    let safe_report_count:u32 = reports.iter().map( |report| match report.is_safe() { true => 1, false => 0 }).sum();
-    println!("Day 2, Part 1: Number of safe reports is {}", safe_report_count);
+    let safe_report_count1:u32 = reports.iter().map( |report| match report.is_safe(0) { true => 1, false => 0 }).sum();
+    println!("Day 2, Part 1: Number of safe reports is {}", safe_report_count1);
+
+    let safe_report_count2:u32 = reports.iter().map( |report| match report.is_safe(1) { true => 1, false => 0 }).sum();
+    println!("Day 2, Part 2: Number of safe reports is {} if one bad level is tolerated", safe_report_count2);
 
 }
