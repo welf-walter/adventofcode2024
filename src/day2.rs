@@ -1,3 +1,4 @@
+use std::slice::Iter;
 
 type Level = i32;
 
@@ -14,10 +15,9 @@ type Reports = Vec<Report>;
 
 impl Report {
 
-    fn is_slowly_changing(&self, min_diff:Level, max_diff:Level, tolerate: u32) -> bool {
+    fn is_slowly_changing(mut iter:Iter<Level>, min_diff:Level, max_diff:Level, tolerate: u32) -> bool {
         //println!("Check >= {} <= {} tolerate {} ", min_diff, max_diff, tolerate);
         let mut tol = tolerate;
-        let mut iter = self.levels.iter();
         let mut last = iter.next().unwrap();
         for next in iter {
             //print!("{} ", next - last);
@@ -37,10 +37,18 @@ impl Report {
         true
     }
 
+    fn is_iter_safe(mut iter:Iter<Level>, tolerate: u32) -> bool {
+        if Self::is_slowly_changing(iter.clone(),  1,  3, tolerate) { return true };
+        if Self::is_slowly_changing(iter.clone(), -3, -1, tolerate) { return true };
+        if tolerate > 0 { 
+            iter.next();
+            return Self::is_iter_safe(iter, tolerate - 1); 
+        };
+        false
+    }
+
     fn is_safe(&self, tolerate: u32) -> bool {
-        self.is_slowly_changing(1, 3, tolerate)
-        ||
-        self.is_slowly_changing(-3, -1, tolerate)
+        Self::is_iter_safe(self.levels.iter(), tolerate)
     }
 }
 
