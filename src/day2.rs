@@ -102,3 +102,22 @@ fn test_parse() {
         ]);
 }
 
+//////////////////////////////////////////
+/// Puzzle
+//////////////////////////////////////////
+
+use std::fs::File;
+use std::io::BufRead;
+use std::io::BufReader;
+
+pub fn puzzle() {
+    let file = File::open("input/day2.txt").expect("Could not open input/day2.txt");
+    let reader = BufReader::new(file);
+
+    let lines:Vec<String> = reader.lines().map( |line| line.unwrap() ).collect();
+    let reports = parse_reports(lines.iter().map( |line| line.as_str() ));
+    
+    let safe_report_count:u32 = reports.iter().map( |report| match report.is_safe() { true => 1, false => 0 }).sum();
+    println!("Day 2, Part 1: Number of safe reports is {}", safe_report_count);
+
+}
