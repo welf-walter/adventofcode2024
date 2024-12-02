@@ -15,26 +15,25 @@ type Reports = Vec<Report>;
 impl Report {
 
     fn is_slowly_changing(&self, min_diff:Level, max_diff:Level, tolerate: u32) -> bool {
+        //println!("Check >= {} <= {} tolerate {} ", min_diff, max_diff, tolerate);
         let mut tol = tolerate;
         let mut iter = self.levels.iter();
         let mut last = iter.next().unwrap();
         for next in iter {
-            if next - last > max_diff { 
+            //print!("{} ", next - last);
+            if next - last > max_diff ||
+               next - last < min_diff {
                 if tol > 0 {
+                    //print!("(tolerating {} - {} = {}) ", next, last, next - last);
                     tol -= 1;
                     continue;
                 }
-                return false; 
-            }
-            if next - last < min_diff { 
-                if tol > 0 {
-                    tol -= 1;
-                    continue;
-                }
-                return false; 
+                //println!("fail");
+                return false;
             }
             last = next;
         }
+        //println!("ok");
         true
     }
 
@@ -68,6 +67,10 @@ fn test_is_safe() {
     assert_eq!(reports[3].is_safe(1), true);
     assert_eq!(reports[4].is_safe(1), true);
     assert_eq!(reports[5].is_safe(1), true);
+
+    assert_eq!(parse_report("100 1 2 3").is_safe(1), true);
+    assert_eq!(parse_report("1 22 2 99 3").is_safe(2), true);
+    assert_eq!(parse_report("100 1 2 3 999").is_safe(2), true);
 }
 
 //////////////////////////////////////////
@@ -125,9 +128,9 @@ pub fn puzzle() {
 
     let lines:Vec<String> = reader.lines().map( |line| line.unwrap() ).collect();
     let reports = parse_reports(lines.iter().map( |line| line.as_str() ));
-    
+
     let safe_report_count1:u32 = reports.iter().map( |report| match report.is_safe(0) { true => 1, false => 0 }).sum();
-    println!("Day 2, Part 1: Number of safe reports is {}", safe_report_count1);
+    println!("Day 2, Part 1: Number of safe reports is {} of {}", safe_report_count1, reports.len());
 
     let safe_report_count2:u32 = reports.iter().map( |report| match report.is_safe(1) { true => 1, false => 0 }).sum();
     println!("Day 2, Part 2: Number of safe reports is {} if one bad level is tolerated", safe_report_count2);
