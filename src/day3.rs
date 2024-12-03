@@ -69,11 +69,21 @@ impl Parser {
         }
         Parser { lines:lines, multiplications:multiplications }
     }
+
+    fn sum_of_multiplications(&self) -> u32 {
+        self.multiplications.iter().map( |(a,b)| a * b).sum()
+    }
 }
 
 #[test]
 fn test_parser() {
 
-    let parser = Parser::parse(vec!["limulbatrimul(22fimul(12,34)brmul(9999,12)".to_string()]);
-    assert_eq!(parser.multiplications, vec![(12,34)]);
+    let parser1 = Parser::parse(vec!["limulbatrimul(22fimul(12,34)brmul(9999,12)".to_string()]);
+    assert_eq!(parser1.multiplications, vec![(12,34)]);
+    assert_eq!(parser1.sum_of_multiplications(), 12*34);
+
+    let parser2 = Parser::parse(vec!["xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))".to_string()]);
+    assert_eq!(parser2.multiplications, vec![(2,4),(5,5),(11,8),(8,5)]);
+    assert_eq!(parser2.sum_of_multiplications(), 161);
+
 }
