@@ -20,9 +20,8 @@ enum Instruction {
 }
 
 impl Parser {
-    fn parse_line<const PUZZLE_PART:u32>(line:&str, multiplications:&mut Multiplications) {
+    fn parse_line<const PUZZLE_PART:u32>(line:&str, multiplications:&mut Multiplications, mul_enabled:&mut bool) {
         let mut next_instruction = Instruction::UNKNOWN;
-        let mut mul_enabled = true;
 
         if VERBOSE { println!("---"); }
 
@@ -43,9 +42,9 @@ impl Parser {
 
             match this_instruction {
                 Instruction::UNKNOWN => { continue; },
-                Instruction::DO => { mul_enabled = true; continue; },
-                Instruction::DONT => { mul_enabled = false; continue; },
-                Instruction::MUL => { if ! mul_enabled { continue; } }
+                Instruction::DO => { *mul_enabled = true; continue; },
+                Instruction::DONT => { *mul_enabled = false; continue; },
+                Instruction::MUL => { if ! *mul_enabled { continue; } }
             }
 
             if VERBOSE { print!("mul({}: ", &part); }
@@ -96,8 +95,9 @@ impl Parser {
 
     fn parse<const PUZZLE_PART:u32>(lines:Vec<String>) -> Parser {
         let mut multiplications:Multiplications = Multiplications::new();
+        let mut mul_enabled = true;
         for line in &lines {
-            Self::parse_line::<PUZZLE_PART>(line, &mut multiplications);
+            Self::parse_line::<PUZZLE_PART>(line, &mut multiplications, &mut mul_enabled);
         }
         Parser { multiplications:multiplications }
     }
@@ -124,6 +124,9 @@ fn test_parser() {
     let parser4 = Parser::parse::<2>(vec!["xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))".to_string()]);
     assert_eq!(parser4.multiplications, vec![(2,4),(8,5)]);
     assert_eq!(parser4.sum_of_multiplications(), 48);
+
+    let parser5 = Parser::parse::<2>(vec!["liadon't()".to_string(), "4)brmul(99,12)".to_string()]);
+    assert_eq!(parser5.multiplications, vec![]);
 
 }
 
