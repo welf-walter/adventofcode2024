@@ -12,11 +12,42 @@ struct Parser {
     multiplications:Multiplications
 }
 
+enum Instruction {
+    MUL,
+    DO,
+    DONT,
+    UNKNOWN
+}
+
 impl Parser {
-    fn parse_line(line:&str, multiplications:&mut Multiplications) {
-        let mut parts = line.split("mul(");
-        parts.next(); // ignore everything before first "mul"
+    fn parse_line<const PUZZLE_PART:u32>(line:&str, multiplications:&mut Multiplications) {
+        let mut next_instruction = Instruction::UNKNOWN;
+        let mut mul_enabled = true;
+
+        if VERBOSE { println!("---"); }
+
+        let parts = line.split("(");
         for part in parts {
+            let this_instruction = next_instruction;
+
+            next_instruction = Instruction::UNKNOWN;
+            if part.ends_with("mul") {
+                next_instruction = Instruction::MUL;
+            }
+            if PUZZLE_PART == 2 && part.ends_with("do") {
+                next_instruction = Instruction::DO;
+            }
+            if PUZZLE_PART == 2 && part.ends_with("don't") {
+                next_instruction = Instruction::DONT;
+            }
+
+            match this_instruction {
+                Instruction::UNKNOWN => { continue; },
+                Instruction::DO => { mul_enabled = true; continue; },
+                Instruction::DONT => { mul_enabled = false; continue; },
+                Instruction::MUL => { if ! mul_enabled { continue; } }
+            }
+
             if VERBOSE { print!("mul({}: ", &part); }
 
             let rbracket_split = part.split_once(")");
@@ -63,10 +94,10 @@ impl Parser {
         }
     }
 
-    fn parse(lines:Vec<String>) -> Parser {
+    fn parse<const PUZZLE_PART:u32>(lines:Vec<String>) -> Parser {
         let mut multiplications:Multiplications = Multiplications::new();
         for line in &lines {
-            Self::parse_line(line, &mut multiplications);
+            Self::parse_line::<PUZZLE_PART>(line, &mut multiplications);
         }
         Parser { multiplications:multiplications }
     }
@@ -79,13 +110,20 @@ impl Parser {
 #[test]
 fn test_parser() {
 
-    let parser1 = Parser::parse(vec!["limulbatrimul(22fimul(12,34)brmul(9999,12)".to_string()]);
-    assert_eq!(parser1.multiplications, vec![(12,34)]);
-    assert_eq!(parser1.sum_of_multiplications(), 12*34);
+    let parser1 = Parser::parse::<1>(vec!["limulbatrimul(22fimul(12,34)brmul(9999,12)eemul(999,12)".to_string()]);
+    assert_eq!(parser1.multiplications, vec![(12,34), (999,12)]);
+    assert_eq!(parser1.sum_of_multiplications(), 12*34 + 999*12);
 
-    let parser2 = Parser::parse(vec!["xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))".to_string()]);
+    let parser2 = Parser::parse::<1>(vec!["xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))".to_string()]);
     assert_eq!(parser2.multiplications, vec![(2,4),(5,5),(11,8),(8,5)]);
     assert_eq!(parser2.sum_of_multiplications(), 161);
+
+    let parser3 = Parser::parse::<2>(vec!["limul(12,34)bladon't()4)brmul(99,12)".to_string()]);
+    assert_eq!(parser3.multiplications, vec![(12,34)]);
+
+    let parser4 = Parser::parse::<2>(vec!["xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))".to_string()]);
+    assert_eq!(parser4.multiplications, vec![(2,4),(8,5)]);
+    assert_eq!(parser4.sum_of_multiplications(), 48);
 
 }
 
@@ -102,9 +140,13 @@ pub fn puzzle() {
     let reader = BufReader::new(file);
 
     let lines:Vec<String> = reader.lines().map( |line| line.unwrap() ).collect();
-    let parser = Parser::parse(lines);
-    let sum = parser.sum_of_multiplications();
 
-    println!("Day 3, Part 1: Sum of {} multplications is {}", parser.multiplications.len(), sum);
+    let parser1 = Parser::parse::<1>(lines.clone());
+    let sum1 = parser1.sum_of_multiplications();
+    println!("Day 3, Part 1: Sum of {} multiplications is {}", parser1.multiplications.len(), sum1);
+
+    let parser2 = Parser::parse::<2>(lines);
+    let sum2 = parser2.sum_of_multiplications();
+    println!("Day 3, Part 2: Sum of {} multiplications is {}", parser2.multiplications.len(), sum2);
 
 }
