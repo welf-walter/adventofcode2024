@@ -83,6 +83,7 @@ fn test_is_safe() {
     assert_eq!(parse_report("100 1 2 3 999").is_safe(2), true);
     assert_eq!(parse_report("100 999 1 2 3").is_safe(2), true);
     assert_eq!(parse_report("40 41 43 44 47 47").is_safe(1), true);
+    assert_eq!(parse_report("1 3 2 3 4").is_safe(1), true);
 }
 
 //////////////////////////////////////////
