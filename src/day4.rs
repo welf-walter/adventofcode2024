@@ -11,6 +11,11 @@ fn change_position(current:Position, direction:Direction) -> Position {
     (current.0 + direction.0, current.1 + direction.1)
 }
 
+fn all_directions() -> [Direction;8] {
+    [( 1, 0),( 1, 1),( 0, 1),(-1, 1),
+     (-1, 0),(-1,-1),( 0,-1),( 1,-1)]
+}
+
 impl Puzzle {
     fn create<'a>(lines:impl Iterator<Item=&'a str>) -> Puzzle {
         let mut rows = Vec::new();
@@ -47,6 +52,22 @@ impl Puzzle {
         }
         return true;
     }
+
+    fn find(&self, text:&str) -> u32 {
+        let mut match_count = 0;
+        let all_directions = all_directions();
+        for y in 0..self.height {
+            for x in 0..self.width {
+                let position = (x as i32,y as i32);
+                for direction in &all_directions {
+                    if self.matches(text, position, *direction) {
+                        match_count += 1;
+                    }
+                }
+            }
+        }
+        match_count
+    }
 }
 
 #[test]
@@ -81,4 +102,19 @@ XMAS.S
     assert_eq!(puzzle1.matches("XMAS",(0,3),(1,0)), true);
     assert_eq!(puzzle1.matches("XMAS",(1,1),(1,0)), false);
     assert_eq!(puzzle1.matches("XMAS",(4,1),(1,0)), false);
+    assert_eq!(puzzle1.find("XMAS"), 4);
+
+    let input2 = 
+"MMMSXXMASM
+MSAMXMSMSA
+AMXSXMAAMM
+MSAMASMSMX
+XMASAMXAMM
+XXAMMXXAMA
+SMSMSASXSS
+SAXAMASAAA
+MAMMMXMMMM
+MXMXAXMASX";
+    let puzzle2 = Puzzle::create(input2.split('\n'));
+    assert_eq!(puzzle2.find("XMAS"), 18);
 }
