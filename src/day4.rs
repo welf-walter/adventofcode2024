@@ -1,7 +1,14 @@
 struct Puzzle {
-    width:usize,
-    height:usize,
+    width:u32,
+    height:u32,
     letters:Vec<Vec<char>>
+}
+
+type Position = (/* x: */ i32,/* y: */ i32);
+type Direction = (/* deltax: */ i32,/* deltay: */ i32);
+
+fn change_position(current:Position, direction:Direction) -> Position {
+    (current.0 + direction.0, current.1 + direction.1)
 }
 
 impl Puzzle {
@@ -14,14 +21,32 @@ impl Puzzle {
             }
             rows.push(row);
         }
-        let height = rows.len();
-        let width = rows[0].len();
+        let height = rows.len() as u32;
+        let width = rows[0].len() as u32;
         for row in &rows {
-            assert_eq!(row.len(),width);
+            assert_eq!(row.len() as u32,width);
         }
         Puzzle { width, height, letters: rows }
     }
 
+    fn letter_at(&self, position:Position) -> char {
+        self.letters[position.1 as usize][position.0 as usize]
+    }
+
+    fn is_valid_position(&self, position:Position) -> bool {
+        position.0 >= 0 && position.0 < self.width as i32 && 
+        position.1 >= 0 && position.1 < self.height as i32
+    }
+
+    fn matches(&self, text:&str, position:Position, direction:Direction) -> bool {
+        let mut pos = position;
+        for c in text.chars() {
+            if !self.is_valid_position(pos) { return false; }
+            if c != self.letter_at(pos) { return false; }
+            pos = change_position(pos, direction);
+        }
+        return true;
+    }
 }
 
 #[test]
@@ -36,4 +61,24 @@ XMAS.S
     assert_eq!(puzzle1.width, 6);
     assert_eq!(puzzle1.height, 5);
     assert_eq!(puzzle1.letters[1], vec!['.','S','A','M','X','.']);
+}
+
+#[test]
+fn test_move() {
+    let p = (2,3);
+    assert_eq!(change_position(p,(1,0)),(3,3));
+}
+
+#[test]
+fn test_puzzle() {
+    let input1 =
+"..X...
+.SAMX.
+.A..A.
+XMAS.S
+.X....";
+    let puzzle1 = Puzzle::create(input1.split('\n'));
+    assert_eq!(puzzle1.matches("XMAS",(0,3),(1,0)), true);
+    assert_eq!(puzzle1.matches("XMAS",(1,1),(1,0)), false);
+    assert_eq!(puzzle1.matches("XMAS",(4,1),(1,0)), false);
 }
