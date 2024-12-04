@@ -71,7 +71,6 @@ impl Puzzle {
 
     fn find_xmas(&self) -> u32 {
         let mut match_count = 0;
-        let all_directions = all_directions();
         for y in 0..self.height {
             for x in 0..self.width {
                 let upper_left   = ((x  ) as i32,(y  ) as i32);
@@ -160,7 +159,7 @@ pub fn puzzle() {
     let lines:Vec<String> = reader.lines().map( |line| line.unwrap() ).collect();
 
     let puzzle = Puzzle::create(lines.iter().map( |line| line.as_str()));
-    let count_xmas = puzzle.find("XMAS");
-    println!("Day 4, Part 1: There are {} findings of XMAS", count_xmas);
+    println!("Day 4, Part 1: There are {} findings of XMAS", puzzle.find("XMAS"));
+    println!("Day 4, Part 2: There are {} findings of X-MAS", puzzle.find_xmas());
 
 }
