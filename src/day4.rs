@@ -39,7 +39,7 @@ impl Puzzle {
     }
 
     fn is_valid_position(&self, position:Position) -> bool {
-        position.0 >= 0 && position.0 < self.width as i32 && 
+        position.0 >= 0 && position.0 < self.width as i32 &&
         position.1 >= 0 && position.1 < self.height as i32
     }
 
@@ -63,6 +63,25 @@ impl Puzzle {
                     if self.matches(text, position, *direction) {
                         match_count += 1;
                     }
+                }
+            }
+        }
+        match_count
+    }
+
+    fn find_xmas(&self) -> u32 {
+        let mut match_count = 0;
+        let all_directions = all_directions();
+        for y in 0..self.height {
+            for x in 0..self.width {
+                let upper_left   = ((x  ) as i32,(y  ) as i32);
+                let upper_right  = ((x+2) as i32,(y  ) as i32);
+                let bottom_left  = ((x  ) as i32,(y+2) as i32);
+                let bottom_right = ((x+2) as i32,(y+2) as i32);
+
+                if ( self.matches("MAS", upper_left , (1, 1)) || self.matches("MAS", bottom_right, (-1,-1)) )
+                && ( self.matches("MAS", bottom_left, (1,-1)) || self.matches("MAS", upper_right,  (-1, 1)) ) {
+                    match_count += 1;
                 }
             }
         }
@@ -92,6 +111,14 @@ fn test_move() {
 
 #[test]
 fn test_puzzle() {
+
+    let input0 =
+"M.S
+.A.
+M.S";
+    let puzzle0 = Puzzle::create(input0.split('\n'));
+    assert_eq!(puzzle0.find_xmas(), 1);
+
     let input1 =
 "..X...
 .SAMX.
@@ -104,7 +131,7 @@ XMAS.S
     assert_eq!(puzzle1.matches("XMAS",(4,1),(1,0)), false);
     assert_eq!(puzzle1.find("XMAS"), 4);
 
-    let input2 = 
+    let input2 =
 "MMMSXXMASM
 MSAMXMSMSA
 AMXSXMAAMM
@@ -117,6 +144,7 @@ MAMMMXMMMM
 MXMXAXMASX";
     let puzzle2 = Puzzle::create(input2.split('\n'));
     assert_eq!(puzzle2.find("XMAS"), 18);
+    assert_eq!(puzzle2.find_xmas(), 9);
 }
 
 //////////////////////////////////////////
