@@ -118,3 +118,21 @@ MXMXAXMASX";
     let puzzle2 = Puzzle::create(input2.split('\n'));
     assert_eq!(puzzle2.find("XMAS"), 18);
 }
+
+//////////////////////////////////////////
+
+use std::fs::File;
+use std::io::BufRead;
+use std::io::BufReader;
+
+pub fn puzzle() {
+    let file = File::open("input/day4.txt").expect("Could not open input/day4.txt");
+    let reader = BufReader::new(file);
+
+    let lines:Vec<String> = reader.lines().map( |line| line.unwrap() ).collect();
+
+    let puzzle = Puzzle::create(lines.iter().map( |line| line.as_str()));
+    let count_xmas = puzzle.find("XMAS");
+    println!("Day 4, Part 1: There are {} findings of XMAS", count_xmas);
+
+}
