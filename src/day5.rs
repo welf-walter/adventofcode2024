@@ -7,10 +7,37 @@ type Rule = (/* a: */Page,/* b: */Page);
 
 type Update = Vec<Page>;
 
+//////////////////////////////////////////
+/// Puzzle
+//////////////////////////////////////////
+
 struct Puzzle {
     rules:Vec<Rule>,
     updates:Vec<Update>
 }
+
+impl Puzzle {
+    fn is_correct_update(&self, update:&Update) -> bool {
+        for rule in &self.rules {
+            let aposo = update.iter().position(|page| *page == rule.0);
+            let bposo = update.iter().position(|page| *page == rule.1);
+            match (aposo,bposo) {
+                (Some(apos),Some(bpos)) => {
+                    if apos > bpos {
+                        if VERBOSE { println!("{} before {}", rule.1, rule.0); }
+                        return false;
+                    }
+                },
+                (_,_) => {}
+            }
+        }
+        true
+    }
+}
+
+//////////////////////////////////////////
+/// Parsing
+//////////////////////////////////////////
 
 fn read_puzzle(lines:Vec<String>) -> Puzzle {
     // section 1 = rules
@@ -76,4 +103,10 @@ fn test_read_puzzle() {
     assert_eq!(puzzle.rules[0], (47,53));
     assert_eq!(puzzle.updates.len(), 6);
     assert_eq!(puzzle.updates[0], vec![75,47,61,53,29]);
+    assert_eq!(puzzle.is_correct_update(&puzzle.updates[0]), true);
+    assert_eq!(puzzle.is_correct_update(&puzzle.updates[1]), true);
+    assert_eq!(puzzle.is_correct_update(&puzzle.updates[2]), true);
+    assert_eq!(puzzle.is_correct_update(&puzzle.updates[3]), false);
+    assert_eq!(puzzle.is_correct_update(&puzzle.updates[4]), false);
+    assert_eq!(puzzle.is_correct_update(&puzzle.updates[5]), false);
 }
