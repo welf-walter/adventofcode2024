@@ -39,6 +39,10 @@ impl Puzzle {
         assert!(update.len() % 2 == 1);
         update[update.len() / 2]
     }
+
+    fn sum_of_correct_middle_pages(&self) -> u32 {
+        self.updates.iter().filter( |u| self.is_correct_update(u)).map( |u| Self::get_middle_page(u)).sum()
+    }
 }
 
 #[test]
@@ -120,4 +124,5 @@ fn test_read_puzzle() {
     assert_eq!(puzzle.is_correct_update(&puzzle.updates[3]), false);
     assert_eq!(puzzle.is_correct_update(&puzzle.updates[4]), false);
     assert_eq!(puzzle.is_correct_update(&puzzle.updates[5]), false);
+    assert_eq!(puzzle.sum_of_correct_middle_pages(), 143);
 }
