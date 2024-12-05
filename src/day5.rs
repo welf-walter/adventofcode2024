@@ -33,6 +33,17 @@ impl Puzzle {
         }
         true
     }
+
+    fn get_middle_page(update:&Update) -> Page {
+        // expect odd number of elements
+        assert!(update.len() % 2 == 1);
+        update[update.len() / 2]
+    }
+}
+
+#[test]
+fn test_puzzle_helper() {
+    assert_eq!(Puzzle::get_middle_page(&vec![1,2,3,4,5]),3);
 }
 
 //////////////////////////////////////////
