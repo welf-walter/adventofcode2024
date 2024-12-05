@@ -79,14 +79,18 @@ impl Puzzle {
         update.sort_by(|a,b| rules.cmp(*a,*b) );
     }
 
-    fn fix_incorrect(&mut self) {
-        for update in &mut self.updates {
+    // return fixed updates as copies
+    fn fix_incorrect(&self) -> Vec<Update> {
+        let mut fixed_updates = Vec::new();
+        for update in &self.updates {
             if ! self.rules.is_correct_update(&update) {
-                if VERBOSE { println!("To sort: {:?}", update); }
-                Self::fix_update(&self.rules, update);
-                if VERBOSE { println!("Sorted: {:?}", update); }
+                let mut fixed_update = update.clone();
+                Self::fix_update(&self.rules, &mut fixed_update);
+                if VERBOSE { println!("Sorted: {:?} to {:?}", update, fixed_update); }
+                fixed_updates.push(fixed_update);
             }
         }
+        fixed_updates
     }
 }
 
@@ -171,13 +175,15 @@ fn test_read_puzzle() {
     assert_eq!(puzzle.rules.is_correct_update(&puzzle.updates[5]), false);
     assert_eq!(puzzle.sum_of_correct_middle_pages(), 143);
 
-    let mut puzzle2 = puzzle;
-    assert_eq!(puzzle2.rules.cmp(47, 53), Ordering::Less);
-    assert_eq!(puzzle2.rules.cmp(13, 97), Ordering::Greater);
-    puzzle2.fix_incorrect();
-    assert_eq!(puzzle2.rules.is_correct_update(&puzzle2.updates[3]), true);
-    assert_eq!(puzzle2.rules.is_correct_update(&puzzle2.updates[4]), true);
-    assert_eq!(puzzle2.rules.is_correct_update(&puzzle2.updates[5]), true);
+    assert_eq!(puzzle.rules.cmp(47, 53), Ordering::Less);
+    assert_eq!(puzzle.rules.cmp(13, 97), Ordering::Greater);
+    let fixed = puzzle.fix_incorrect();
+    assert_eq!(puzzle.rules.is_correct_update(&fixed[0]), true);
+    assert_eq!(fixed[0], vec![97,75,47,61,53]);
+    assert_eq!(puzzle.rules.is_correct_update(&fixed[1]), true);
+    assert_eq!(fixed[1], vec![61,29,13]);
+    assert_eq!(puzzle.rules.is_correct_update(&fixed[2]), true);
+    assert_eq!(fixed[2], vec![97,75,47,29,13]);
 }
 
 //////////////////////////////////////////
