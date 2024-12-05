@@ -4,7 +4,7 @@ mod day3;
 mod day4;
 mod day5;
 
-const NUMBER_OF_DAYS : u32 = 4;
+const NUMBER_OF_DAYS : u32 = 5;
 
 use clap::Parser;
 
@@ -25,6 +25,7 @@ fn main() {
             2=>day2::puzzle(),
             3=>day3::puzzle(),
             4=>day4::puzzle(),
+            5=>day5::puzzle(),
             otherday=>println!("Unknown day {}", otherday)
         }
     }

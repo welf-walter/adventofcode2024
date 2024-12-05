@@ -126,3 +126,23 @@ fn test_read_puzzle() {
     assert_eq!(puzzle.is_correct_update(&puzzle.updates[5]), false);
     assert_eq!(puzzle.sum_of_correct_middle_pages(), 143);
 }
+
+//////////////////////////////////////////
+/// Real Puzzle
+//////////////////////////////////////////
+
+use std::fs::File;
+use std::io::BufRead;
+use std::io::BufReader;
+
+pub fn puzzle() {
+    let file = File::open("input/day5.txt").expect("Could not open input/day5.txt");
+    let reader = BufReader::new(file);
+
+    let lines:Vec<String> = reader.lines().map( |line| line.unwrap() ).collect();
+
+    let puzzle = read_puzzle(lines);
+    let sum = puzzle.sum_of_correct_middle_pages();
+    println!("Day 3, Part 1: Sum of middlepages of correct updates is {}", sum);
+
+}
