@@ -1,4 +1,6 @@
-const VERBOSE:bool = false;
+use std::cmp::Ordering;
+
+const VERBOSE:bool = true;
 
 type Page = u32;
 
@@ -8,15 +10,14 @@ type Rule = (/* a: */Page,/* b: */Page);
 type Update = Vec<Page>;
 
 //////////////////////////////////////////
-/// Puzzle
+/// Rules
 //////////////////////////////////////////
 
-struct Puzzle {
-    rules:Vec<Rule>,
-    updates:Vec<Update>
+struct Rules {
+    rules:Vec<Rule>
 }
 
-impl Puzzle {
+impl Rules {
     fn is_correct_update(&self, update:&Update) -> bool {
         for rule in &self.rules {
             let aposo = update.iter().position(|page| *page == rule.0);
@@ -24,7 +25,7 @@ impl Puzzle {
             match (aposo,bposo) {
                 (Some(apos),Some(bpos)) => {
                     if apos > bpos {
-                        if VERBOSE { println!("{} before {}", rule.1, rule.0); }
+                        if VERBOSE { println!("incorrect: {} before {}", rule.1, rule.0); }
                         return false;
                     }
                 },
@@ -34,6 +35,36 @@ impl Puzzle {
         true
     }
 
+    // must a come before b?
+    fn cmp(&self, a:Page, b:Page) -> Ordering {
+        for rule in &self.rules {
+            if a == rule.0 && b == rule.1 {
+                if VERBOSE { println!("  {} < {}", a, b);}
+                return Ordering::Less;
+            }
+            if a == rule.1 && b == rule.0 {
+                if VERBOSE { println!("  {} > {}", a, b);}
+                return Ordering::Greater;
+            }
+        }
+        if VERBOSE { println!("  {} = {}", a, b);}
+        assert_eq!(a,b);
+        Ordering::Equal
+    }
+
+}
+
+//////////////////////////////////////////
+/// Puzzle
+//////////////////////////////////////////
+
+struct Puzzle {
+    rules:Rules,
+    updates:Vec<Update>
+}
+
+impl Puzzle {
+
     fn get_middle_page(update:&Update) -> Page {
         // expect odd number of elements
         assert!(update.len() % 2 == 1);
@@ -41,7 +72,21 @@ impl Puzzle {
     }
 
     fn sum_of_correct_middle_pages(&self) -> u32 {
-        self.updates.iter().filter( |u| self.is_correct_update(u)).map( |u| Self::get_middle_page(u)).sum()
+        self.updates.iter().filter( |u| self.rules.is_correct_update(u)).map( |u| Self::get_middle_page(u)).sum()
+    }
+
+    fn fix_update(rules:&Rules, update:&mut Vec<Page>) {
+        update.sort_by(|a,b| rules.cmp(*a,*b) );
+    }
+
+    fn fix_incorrect(&mut self) {
+        for update in &mut self.updates {
+            if ! self.rules.is_correct_update(&update) {
+                if VERBOSE { println!("To sort: {:?}", update); }
+                Self::fix_update(&self.rules, update);
+                if VERBOSE { println!("Sorted: {:?}", update); }
+            }
+        }
     }
 }
 
@@ -76,7 +121,7 @@ fn read_puzzle(lines:Vec<String>) -> Puzzle {
             updates.push(update);
         }
     }
-    Puzzle{rules, updates}
+    Puzzle{rules:Rules{rules:rules}, updates}
 }
 
 #[cfg(test)]
@@ -114,17 +159,25 @@ fn input1() -> Vec<String> {
 #[test]
 fn test_read_puzzle() {
     let puzzle = read_puzzle(input1());
-    assert_eq!(puzzle.rules.len(), 21);
-    assert_eq!(puzzle.rules[0], (47,53));
+    assert_eq!(puzzle.rules.rules.len(), 21);
+    assert_eq!(puzzle.rules.rules[0], (47,53));
     assert_eq!(puzzle.updates.len(), 6);
     assert_eq!(puzzle.updates[0], vec![75,47,61,53,29]);
-    assert_eq!(puzzle.is_correct_update(&puzzle.updates[0]), true);
-    assert_eq!(puzzle.is_correct_update(&puzzle.updates[1]), true);
-    assert_eq!(puzzle.is_correct_update(&puzzle.updates[2]), true);
-    assert_eq!(puzzle.is_correct_update(&puzzle.updates[3]), false);
-    assert_eq!(puzzle.is_correct_update(&puzzle.updates[4]), false);
-    assert_eq!(puzzle.is_correct_update(&puzzle.updates[5]), false);
+    assert_eq!(puzzle.rules.is_correct_update(&puzzle.updates[0]), true);
+    assert_eq!(puzzle.rules.is_correct_update(&puzzle.updates[1]), true);
+    assert_eq!(puzzle.rules.is_correct_update(&puzzle.updates[2]), true);
+    assert_eq!(puzzle.rules.is_correct_update(&puzzle.updates[3]), false);
+    assert_eq!(puzzle.rules.is_correct_update(&puzzle.updates[4]), false);
+    assert_eq!(puzzle.rules.is_correct_update(&puzzle.updates[5]), false);
     assert_eq!(puzzle.sum_of_correct_middle_pages(), 143);
+
+    let mut puzzle2 = puzzle;
+    assert_eq!(puzzle2.rules.cmp(47, 53), Ordering::Less);
+    assert_eq!(puzzle2.rules.cmp(13, 97), Ordering::Greater);
+    puzzle2.fix_incorrect();
+    assert_eq!(puzzle2.rules.is_correct_update(&puzzle2.updates[3]), true);
+    assert_eq!(puzzle2.rules.is_correct_update(&puzzle2.updates[4]), true);
+    assert_eq!(puzzle2.rules.is_correct_update(&puzzle2.updates[5]), true);
 }
 
 //////////////////////////////////////////
