@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-const VERBOSE:bool = true;
+const VERBOSE:bool = false;
 
 type Page = u32;
 
@@ -73,6 +73,11 @@ impl Puzzle {
 
     fn sum_of_correct_middle_pages(&self) -> u32 {
         self.updates.iter().filter( |u| self.rules.is_correct_update(u)).map( |u| Self::get_middle_page(u)).sum()
+    }
+
+    fn sum_of_corrected_middle_pages(&self) -> u32 {
+        let fixed = self.fix_incorrect();
+        fixed.iter().filter( |u| self.rules.is_correct_update(u)).map( |u| Self::get_middle_page(u)).sum()
     }
 
     fn fix_update(rules:&Rules, update:&mut Vec<Page>) {
@@ -201,7 +206,10 @@ pub fn puzzle() {
     let lines:Vec<String> = reader.lines().map( |line| line.unwrap() ).collect();
 
     let puzzle = read_puzzle(lines);
-    let sum = puzzle.sum_of_correct_middle_pages();
-    println!("Day 3, Part 1: Sum of middlepages of correct updates is {}", sum);
+    let sum1 = puzzle.sum_of_correct_middle_pages();
+    println!("Day 3, Part 1: Sum of middlepages of correct updates is {}", sum1);
+
+    let sum2 = puzzle.sum_of_corrected_middle_pages();
+    println!("Day 3, Part 2: Sum of middlepages of corrected updates is {}", sum2);
 
 }
