@@ -42,7 +42,7 @@ impl Map {
     }
 }
 
-fn read_map(lines:Vec<String>) -> Map {
+fn read_map(lines:&Vec<String>) -> Map {
     let height = lines.len();
     let width = lines[0].len();
     let mut obstructions:HashSet<Position> = HashSet::new();
@@ -81,7 +81,7 @@ fn input1() -> Vec<String> {
 #[test]
 fn test_map()
 {
-    let map = read_map(input1());
+    let map = read_map(&input1());
     assert_eq!(map.width, 10);
     assert_eq!(map.height, 10);
     assert_eq!(map.start, (4,6));
@@ -114,8 +114,29 @@ fn walk(map:&Map) -> HashSet<Position> {
 
 #[test]
 fn test_walk() {
-    let map = read_map(input1());
+    let map = read_map(&input1());
     let positions = walk(&map);
     assert!(positions.contains(&(2,4)));
     assert_eq!(positions.len(), 41);
+}
+
+//////////////////////////////////////////
+/// Puzzle
+//////////////////////////////////////////
+
+use std::fs::File;
+use std::io::BufRead;
+use std::io::BufReader;
+
+pub fn puzzle() {
+    let file = File::open("input/day6.txt").expect("Could not open input/day6.txt");
+    let reader = BufReader::new(file);
+
+    let lines:Vec<String> = reader.lines().map( |line| line.unwrap() ).collect();
+
+    let map = read_map(&lines);
+    let positions = walk(&map);
+
+    println!("Day 6, Part 1: Guard was on {} unique positions", positions.len());
+
 }
