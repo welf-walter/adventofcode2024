@@ -150,11 +150,11 @@ fn test_walk() {
 
 fn count_obstructions_that_loop(map:&Map) -> u32 {
     let mut counter = 0;
-    for y in 0 .. map.height {
-        for x in 0 .. map.width {
-            if walk_is_loop(map, (x,y)) {
-                counter += 1;
-            }
+    // we only need to check positions where the guard would walk to
+    let positions = walk(&map);
+    for position in positions {
+        if walk_is_loop(map, position) {
+            counter += 1;
         }
     }
     counter
@@ -178,5 +178,6 @@ pub fn puzzle() {
     let positions = walk(&map);
 
     println!("Day 6, Part 1: Guard was on {} unique positions", positions.len());
+    println!("Day 6, Part 2: There are {} positions for another obstruction that loop", count_obstructions_that_loop(&map));
 
 }
