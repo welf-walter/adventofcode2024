@@ -145,6 +145,19 @@ fn test_walk() {
     assert_eq!(positions.len(), 41);
     assert_eq!(walk_is_loop(&map, (1,1)),false);
     assert_eq!(walk_is_loop(&map, (3,6)),true);
+    assert_eq!(count_obstructions_that_loop(&map), 6);
+}
+
+fn count_obstructions_that_loop(map:&Map) -> u32 {
+    let mut counter = 0;
+    for y in 0 .. map.height {
+        for x in 0 .. map.width {
+            if walk_is_loop(map, (x,y)) {
+                counter += 1;
+            }
+        }
+    }
+    counter
 }
 
 //////////////////////////////////////////
