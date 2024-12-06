@@ -167,6 +167,8 @@ fn count_obstructions_that_loop(map:&Map) -> u32 {
 use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
+use std::time::Instant;
+
 
 pub fn puzzle() {
     let file = File::open("input/day6.txt").expect("Could not open input/day6.txt");
@@ -175,9 +177,12 @@ pub fn puzzle() {
     let lines:Vec<String> = reader.lines().map( |line| line.unwrap() ).collect();
 
     let map = read_map(&lines);
-    let positions = walk(&map);
 
-    println!("Day 6, Part 1: Guard was on {} unique positions", positions.len());
-    println!("Day 6, Part 2: There are {} positions for another obstruction that loop", count_obstructions_that_loop(&map));
+    let start1 = Instant::now();
+    let positions = walk(&map);
+    println!("Day 6, Part 1: Guard was on {} unique positions ({} milliseconds)", positions.len(), start1.elapsed().as_millis());
+
+    let start2 = Instant::now();
+    println!("Day 6, Part 2: There are {} positions for another obstruction that loop ({} seconds)", count_obstructions_that_loop(&map), start2.elapsed().as_secs());
 
 }
