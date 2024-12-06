@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 type Position = (/* x: */usize,/* y: */usize);
 
-#[derive(Debug,Copy,Clone)]
+#[derive(Eq, Hash, PartialEq, Debug,Copy,Clone)]
 enum Direction {
     UP,
     RIGHT,
@@ -112,12 +112,39 @@ fn walk(map:&Map) -> HashSet<Position> {
     }
 }
 
+fn walk_is_loop(map:&Map, additional_obstruction:Position) -> bool {
+    let mut pos = map.start;
+    let mut direction = Direction::UP;
+    let mut posdirs:HashSet<(Position,Direction)> = HashSet::new();
+    loop {
+        if posdirs.contains(&(pos,direction)) {
+            // Loop detected!
+            return true;
+        }
+        posdirs.insert((pos,direction));
+        let new_poso = map.step(pos, direction);
+        if new_poso.is_none() {
+            return false;
+        }
+        let new_pos = new_poso.unwrap();
+        if map.obstructions.contains(&new_pos) || new_pos == additional_obstruction {
+            direction = direction.turn_right();
+        }
+        else
+        {
+            pos = new_pos;
+        }
+    }
+}
+
 #[test]
 fn test_walk() {
     let map = read_map(&input1());
     let positions = walk(&map);
     assert!(positions.contains(&(2,4)));
     assert_eq!(positions.len(), 41);
+    assert_eq!(walk_is_loop(&map, (1,1)),false);
+    assert_eq!(walk_is_loop(&map, (3,6)),true);
 }
 
 //////////////////////////////////////////
