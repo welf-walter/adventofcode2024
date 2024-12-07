@@ -1,4 +1,4 @@
-type Value = u32;
+type Value = u64;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 enum Operator {
@@ -119,4 +119,25 @@ fn test_equations() {
 
     assert_eq!(eqs[1], parse_equation("3267: 81 40 27"));
     assert_eq!(count_equations_that_can_be_made_true(&eqs), 3);
+}
+
+//////////////////////////////////////////
+/// Puzzle
+//////////////////////////////////////////
+
+use std::fs::File;
+use std::io::BufRead;
+use std::io::BufReader;
+
+
+pub fn puzzle() {
+    let file = File::open("input/day7.txt").expect("Could not open input/day7.txt");
+    let reader = BufReader::new(file);
+
+    let lines:Vec<String> = reader.lines().map( |line| line.unwrap() ).collect();
+
+    let eqs:Equations = lines.iter().map(|line| parse_equation(line)).collect();
+    let count = count_equations_that_can_be_made_true(&eqs);
+    println!("Day 7, Part 1: {} of {} equations can be made true", count, eqs.len());
+
 }
