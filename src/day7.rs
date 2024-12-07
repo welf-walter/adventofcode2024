@@ -175,6 +175,11 @@ pub fn puzzle() {
     let part1 = vec![Operator::PLUS, Operator::MULTIPLY];
     let count1 = count_equations_that_can_be_made_true(&eqs, &part1);
     let sum1 = sum_equations_that_can_be_made_true(&eqs, &part1);
-    println!("Day 7, Part 1: {} of {} equations can be made true, their sum is {}", count1, eqs.len(), sum1);
+    println!("Day 7, Part 1: {} of {} equations can be made true with (+ *), their sum is {}", count1, eqs.len(), sum1);
+
+    let part2 = vec![Operator::PLUS, Operator::MULTIPLY, Operator::CONCAT];
+    let count2 = count_equations_that_can_be_made_true(&eqs, &part2);
+    let sum2 = sum_equations_that_can_be_made_true(&eqs, &part2);
+    println!("Day 7, Part 2: {} of {} equations can be made true with (+ * ||), their sum is {}", count2, eqs.len(), sum2);
 
 }
