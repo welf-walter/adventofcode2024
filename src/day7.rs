@@ -99,6 +99,10 @@ fn count_equations_that_can_be_made_true(eqs:&Equations) -> usize {
     eqs.iter().map( |eq| if equation_can_be_made_true(eq) { 1 } else { 0 }).sum()
 }
 
+fn sum_equations_that_can_be_made_true(eqs:&Equations) -> Value {
+    eqs.iter().map( |eq| if equation_can_be_made_true(eq) {  eq.result } else { 0 }).sum()
+}
+
 #[test]
 fn test_equations() {
     let input =
@@ -119,6 +123,7 @@ fn test_equations() {
 
     assert_eq!(eqs[1], parse_equation("3267: 81 40 27"));
     assert_eq!(count_equations_that_can_be_made_true(&eqs), 3);
+    assert_eq!(sum_equations_that_can_be_made_true(&eqs), 3749);
 }
 
 //////////////////////////////////////////
@@ -138,6 +143,7 @@ pub fn puzzle() {
 
     let eqs:Equations = lines.iter().map(|line| parse_equation(line)).collect();
     let count = count_equations_that_can_be_made_true(&eqs);
-    println!("Day 7, Part 1: {} of {} equations can be made true", count, eqs.len());
+    let sum = sum_equations_that_can_be_made_true(&eqs);
+    println!("Day 7, Part 1: {} of {} equations can be made true, their sum is {}", count, eqs.len(), sum);
 
 }
