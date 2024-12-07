@@ -96,7 +96,7 @@ fn test_equation() {
 }
 
 fn count_equations_that_can_be_made_true(eqs:&Equations) -> usize {
-    eqs.iter().map( |eq| equation_can_be_made_true(eq)).count()
+    eqs.iter().map( |eq| if equation_can_be_made_true(eq) { 1 } else { 0 }).sum()
 }
 
 #[test]
@@ -113,6 +113,10 @@ fn test_equations() {
 292: 11 6 16 20";
     let eqs:Equations = input.split('\n').map(|line| parse_equation(line)).collect();
     assert_eq!(eqs.len(), 9);
+    assert_eq!(equation_can_be_made_true(&eqs[0]), true);
+    assert_eq!(equation_can_be_made_true(&eqs[1]), true);
+    assert_eq!(equation_can_be_made_true(&eqs[2]), false);
+
     assert_eq!(eqs[1], parse_equation("3267: 81 40 27"));
     assert_eq!(count_equations_that_can_be_made_true(&eqs), 3);
 }
