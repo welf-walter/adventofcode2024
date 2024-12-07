@@ -69,7 +69,7 @@ fn equation_can_be_made_true(eq:&Equation) -> bool {
 }
 
 #[test]
-fn test_parse() {
+fn test_equation() {
     let eq = parse_equation("3267: 81 40 27");
     assert_eq!(eq.result, 3267);
     assert_eq!(eq.operands, vec![81,40,27]);
@@ -93,4 +93,26 @@ fn test_parse() {
     let eq5 = parse_equation("161011: 16 10 13");
     assert_eq!(equation_can_be_made_true(&eq5), false);
 
+}
+
+fn count_equations_that_can_be_made_true(eqs:&Equations) -> usize {
+    eqs.iter().map( |eq| equation_can_be_made_true(eq)).count()
+}
+
+#[test]
+fn test_equations() {
+    let input =
+"190: 10 19
+3267: 81 40 27
+83: 17 5
+156: 15 6
+7290: 6 8 6 15
+161011: 16 10 13
+192: 17 8 14
+21037: 9 7 18 13
+292: 11 6 16 20";
+    let eqs:Equations = input.split('\n').map(|line| parse_equation(line)).collect();
+    assert_eq!(eqs.len(), 9);
+    assert_eq!(eqs[1], parse_equation("3267: 81 40 27"));
+    assert_eq!(count_equations_that_can_be_made_true(&eqs), 3);
 }
