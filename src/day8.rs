@@ -136,4 +136,8 @@ pub fn puzzle() {
     let antinodes1 = determine_antinodes(&map, factors1);
     println!("Day 8, Part 1: Map contains {} antennas and {} antinodes", map.antennas.len(), antinodes1.len());
 
+    let factors2 = 0..100;
+    let antinodes2 = determine_antinodes(&map, factors2);
+    println!("Day 8, Part 2: Map contains {} antennas and {} antinodes", map.antennas.len(), antinodes2.len());
+
 }
