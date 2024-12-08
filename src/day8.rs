@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::ops::Range;
 
 type Position = (/* x: */i32,/* y: */i32);
 
@@ -19,18 +20,18 @@ impl Map {
         pos.0 >= 0 && pos.1 >= 0 && pos.0 < self.width && pos.1 < self.height
     }
 
-    // mirror a at b
+    // mirror a at b with the given factors
     // only return if contained in map
-    fn mirror(&self, a:Position,b:Position) -> Option<Position> {
-        let c = ( a.0+2*(b.0-a.0),
-                  a.1+2*(b.1-a.1));
-        if self.contains(c) {
-            return Some(c);
+    fn mirror(&self, a:Position,b:Position, factors:Range<i32>) -> Vec<Position> {
+        let mut mirrored = Vec::new();
+        for fac in factors {
+            let c = ( b.0 + fac * (b.0-a.0),
+                      b.1 + fac * (b.1-a.1));
+            if self.contains(c) {
+                mirrored.push(c);
+            }
         }
-        else
-        {
-            return None;
-        }
+        mirrored
     }
 }
 
@@ -83,13 +84,11 @@ fn determine_antinodes(map:&Map) -> HashSet<Position> {
         for j in i+1..len {
             let b = map.antennas[j];
             if a.frequency == b.frequency {
-                match map.mirror(a.position,b.position) {
-                    Some(pos) => {antinodes.insert(pos);},
-                    None => {}
+                for antinode in map.mirror(a.position,b.position,1..2) {
+                    antinodes.insert(antinode);
                 };
-                match map.mirror(b.position,a.position) {
-                    Some(pos) => {antinodes.insert(pos);},
-                    None => {}
+                for antinode in map.mirror(b.position,a.position,1..2) {
+                    antinodes.insert(antinode);
                 };
             }
 
