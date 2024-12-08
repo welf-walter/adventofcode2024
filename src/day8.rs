@@ -108,3 +108,24 @@ fn test_determine_antinodes() {
     assert!(antinodes.contains(&(10,11)));
     assert_eq!(antinodes.len(), 14);
 }
+
+//////////////////////////////////////////
+/// Puzzle
+//////////////////////////////////////////
+
+use std::fs::File;
+use std::io::BufRead;
+use std::io::BufReader;
+
+
+pub fn puzzle() {
+    let file = File::open("input/day8.txt").expect("Could not open input/day8.txt");
+    let reader = BufReader::new(file);
+
+    let lines:Vec<String> = reader.lines().map( |line| line.unwrap() ).collect();
+
+    let map = parse_map(&lines);
+    let antinodes = determine_antinodes(&map);
+    println!("Day 8, Part 1: Map contains {} antennas and {} antinodes", map.antennas.len(), antinodes.len());
+
+}
