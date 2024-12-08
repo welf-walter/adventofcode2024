@@ -76,7 +76,7 @@ fn test_parse() {
     assert_eq!(map.antennas[4], Antenna{frequency:'A', position:(6,5)});
 }
 
-fn determine_antinodes(map:&Map) -> HashSet<Position> {
+fn determine_antinodes(map:&Map, factors:Range<i32>) -> HashSet<Position> {
     let mut antinodes = HashSet::new();
     let len = map.antennas.len();
     for i in 0..len {
@@ -84,10 +84,10 @@ fn determine_antinodes(map:&Map) -> HashSet<Position> {
         for j in i+1..len {
             let b = map.antennas[j];
             if a.frequency == b.frequency {
-                for antinode in map.mirror(a.position,b.position,1..2) {
+                for antinode in map.mirror(a.position,b.position,factors.clone()) {
                     antinodes.insert(antinode);
                 };
-                for antinode in map.mirror(b.position,a.position,1..2) {
+                for antinode in map.mirror(b.position,a.position,factors.clone()) {
                     antinodes.insert(antinode);
                 };
             }
@@ -100,12 +100,20 @@ fn determine_antinodes(map:&Map) -> HashSet<Position> {
 #[test]
 fn test_determine_antinodes() {
     let map = parse_map(&input1());
-    let antinodes = determine_antinodes(&map);
-    assert!(antinodes.contains(&(3,1)));
-    assert!(!antinodes.contains(&(10,9)));
-    assert!(antinodes.contains(&(10,10)));
-    assert!(antinodes.contains(&(10,11)));
-    assert_eq!(antinodes.len(), 14);
+    let factors1 = 1..2;
+    let antinodes1 = determine_antinodes(&map,factors1);
+    assert!(antinodes1.contains(&(3,1)));
+    assert!(!antinodes1.contains(&(10,9)));
+    assert!(antinodes1.contains(&(10,10)));
+    assert!(antinodes1.contains(&(10,11)));
+    assert_eq!(antinodes1.len(), 14);
+    let factors2 = 0..100;
+    let antinodes1 = determine_antinodes(&map,factors2);
+    assert!(antinodes1.contains(&(10,10)));
+    assert!(!antinodes1.contains(&(11,10)));
+    assert!(antinodes1.contains(&(10,11)));
+    assert!(antinodes1.contains(&(11,11)));
+    assert_eq!(antinodes1.len(), 34);
 }
 
 //////////////////////////////////////////
@@ -124,7 +132,8 @@ pub fn puzzle() {
     let lines:Vec<String> = reader.lines().map( |line| line.unwrap() ).collect();
 
     let map = parse_map(&lines);
-    let antinodes = determine_antinodes(&map);
-    println!("Day 8, Part 1: Map contains {} antennas and {} antinodes", map.antennas.len(), antinodes.len());
+    let factors1 = 1..2;
+    let antinodes1 = determine_antinodes(&map, factors1);
+    println!("Day 8, Part 1: Map contains {} antennas and {} antinodes", map.antennas.len(), antinodes1.len());
 
 }
