@@ -91,9 +91,13 @@ fn defrag1(before:&Disk) -> Disk {
 fn defrag2(before:&Disk) -> Disk {
     let mut disk = before.clone();
     let mut file_to_move:Fileid = disk.sectors.iter().max().unwrap().unwrap();
+    let mut old_pos = disk.sectors.len()-1;
     loop {
-        let file_size = disk.sectors.iter().filter( |file_id| file_id.is_some() && file_id.unwrap() == file_to_move ).count();
-        let old_pos = disk.sectors.iter().position( |file_id| file_id.is_some() && file_id.unwrap() == file_to_move ).unwrap();
+        while disk.sectors[old_pos] != Some(file_to_move) { old_pos -= 1 };
+        while old_pos > 0 && disk.sectors[old_pos-1] == Some(file_to_move) { old_pos -= 1 };
+        let mut file_size = 1;
+        while old_pos+file_size < disk.sectors.len() &&
+              disk.sectors[old_pos+file_size] == Some(file_to_move) { file_size += 1 };
         let new_poso = disk.find_free_block(file_size);
         if new_poso.is_some() && new_poso.unwrap() < old_pos {
             let new_pos = new_poso.unwrap();
