@@ -104,3 +104,24 @@ fn test_read_input() {
     assert_eq!(disk2defrag.checksum(), 1928);
 
 }
+
+//////////////////////////////////////////
+/// Puzzle
+//////////////////////////////////////////
+
+use std::fs::File;
+use std::io::BufRead;
+use std::io::BufReader;
+
+
+pub fn puzzle() {
+    let file = File::open("input/day9.txt").expect("Could not open input/day9.txt");
+    let reader = BufReader::new(file);
+
+    let line:String = reader.lines().next().unwrap().unwrap();
+    let disk = read_input(line.as_str());
+    let disk_defrag = defrag(&disk);
+    let checksum = disk_defrag.checksum();
+    println!("Day 9, Part 1: Checksum of disk is {}", checksum);
+
+}
