@@ -19,14 +19,19 @@ impl Disk {
     }
 
     fn find_free_block(&self, blocksize:usize) -> Option<usize> {
-        for i in 0..self.sectors.len()-blocksize {
-            let mut all_free = true;
-            for j in 0..blocksize {
-                all_free = all_free && self.sectors[i+j].is_none();
+        let mut i = 0;
+        while i < self.sectors.len()-blocksize {
+            // find begin of free block
+            while i < self.sectors.len()-blocksize && self.sectors[i].is_some() { i += 1; }
+            // get length of free block
+            let mut j = 1;
+            while j < blocksize && i+j < self.sectors.len() && self.sectors[i+j].is_none() {
+                j += 1;
             }
-            if all_free {
+            if j == blocksize {
                 return Some(i);
             }
+            i = i + j;
         }
         return None;
     }
