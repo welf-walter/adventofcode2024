@@ -41,4 +41,11 @@ fn test_read_input() {
         Some(1), Some(1), Some(1),
         None, None, None, None,
         Some(2), Some(2), Some(2), Some(2), Some(2)]);
+
+    let disk2 = read_input("2333133121414131402");
+    assert_eq!(disk2.sectors, vec![
+        Some(0), Some(0), None, None, None, Some(1), Some(1), Some(1), None, None, None, Some(2),
+        None, None, None, Some(3), Some(3), Some(3), None, Some(4), Some(4), None, Some(5), Some(5), Some(5), Some(5),
+        None, Some(6), Some(6), Some(6), Some(6), None, Some(7), Some(7), Some(7), None,
+        Some(8), Some(8), Some(8), Some(8), Some(9), Some(9)]);
 }
