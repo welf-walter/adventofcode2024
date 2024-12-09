@@ -9,6 +9,14 @@ impl Disk {
     fn is_used(&self, index:usize) -> bool {
         self.sectors[index].is_some()
     }
+
+    fn checksum(&self) -> u64 {
+        let mut akku = 0;
+        for i in 0..self.sectors.len() {
+            akku = akku + (i as u64 * self.sectors[i].unwrap_or(0) as u64 );
+        }
+        akku
+    }
 }
 
 fn read_input(line:&str) -> Disk {
@@ -75,6 +83,7 @@ fn test_read_input() {
         Some(2), Some(2), Some(2),
         None, None, None,
         None, None, None]);
+    assert_eq!(disk1defrag.checksum(), 0*0+1*2+2*2+3*1+4*1+5*1+6*2+7*2+8*2);
 
     let disk2 = read_input("2333133121414131402");
     assert_eq!(disk2.sectors, vec![
@@ -92,4 +101,6 @@ fn test_read_input() {
         Some(4), Some(6), Some(5), Some(5), Some(5),
         Some(5), Some(6), Some(6),
         None, None, None, None, None, None, None, None, None, None, None, None, None, None]);
+    assert_eq!(disk2defrag.checksum(), 1928);
+
 }
