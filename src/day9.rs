@@ -171,6 +171,7 @@ fn test_read_input() {
 use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
+use std::time::Instant;
 
 
 pub fn puzzle() {
@@ -179,8 +180,15 @@ pub fn puzzle() {
 
     let line:String = reader.lines().next().unwrap().unwrap();
     let disk = read_input(line.as_str());
-    let disk_defrag = defrag1(&disk);
-    let checksum = disk_defrag.checksum();
-    println!("Day 9, Part 1: Checksum of disk is {}", checksum);
+
+    let start1 = Instant::now();
+    let disk_defrag1 = defrag1(&disk);
+    let checksum1 = disk_defrag1.checksum();
+    println!("Day 9, Part 1: Checksum of disk is {} ({} milliseconds)", checksum1, start1.elapsed().as_millis());
+
+    let start2 = Instant::now();
+    let disk_defrag2 = defrag2(&disk);
+    let checksum2 = disk_defrag2.checksum();
+    println!("Day 9, Part 2: Checksum of disk is {} ({} seconds)", checksum2, start2.elapsed().as_secs());
 
 }
