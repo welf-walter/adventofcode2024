@@ -124,11 +124,11 @@ impl<E:CharBijection+Copy> PixelMap<E> {
     pub fn width(&self) -> usize { self.area.width }
     pub fn height(&self) -> usize { self.area.height }
 
-    fn at(&self, position:Position) -> E {
+    pub fn at(&self, position:Position) -> E {
         self.pixels[position.1][position.0]
     }
 
-    fn from_strings<'a>(lines:impl Iterator<Item=&'a str>) -> Self {
+    pub fn from_strings<'a>(lines:impl Iterator<Item=&'a str>) -> Self {
         let mut width = 0;
         let mut height = 0;
         let mut pixels = Vec::new();
