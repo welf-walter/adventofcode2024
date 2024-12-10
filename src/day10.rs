@@ -150,5 +150,6 @@ pub fn puzzle() {
     let map = Map::from_strings(lines.iter().map( |line| line.as_str() ));
 
     println!("Day 10, Part 1: Sum of trailhead scores is {}", sum_of_trailhead_scores(&map));
+    println!("Day 10, Part 2: Sum of trailhead rating is {}", sum_of_trailhead_rating(&map));
 
 }
