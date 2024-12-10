@@ -50,6 +50,29 @@ pub struct Area {
     pub height:usize
 }
 
+pub struct AreaIterator<'a> {
+    area:&'a Area,
+    // next x
+    x:usize,
+    // next y
+    y:usize,
+    done:bool
+}
+
+impl Iterator for AreaIterator<'_> {
+    type Item = Position;
+    fn next(&mut self) -> Option<Position> {
+        if self.done { return None; }
+        let pos=(self.x, self.y);
+        if self.x < self.area.width-1  { self.x +=1; return Some(pos)};
+        self.x = 0;
+        if self.y < self.area.height-1 { self.y += 1; return Some(pos)};
+        self.y = 0;
+        self.done = true;
+        return Some(pos);
+    }
+}
+
 impl Area {
     pub fn contains_signed(&self, x:i32, y:i32) -> bool {
         x >= 0 && (x as usize) < self.width && y >= 0 && (y as usize) < self.height
@@ -63,6 +86,24 @@ impl Area {
             LEFT  => { if pos.0 > 0             { return Some((pos.0-1,pos.1  )); } else { return None; }}
         }
     }
+
+    pub fn all_positions(&self) -> AreaIterator {
+        AreaIterator{area:&self, x:0,y:0, done:false}
+    }
+}
+
+#[test]
+fn test_area() {
+    let area = Area{width:3,height:3};
+    assert_eq!(area.contains_signed(2,2), true);
+    assert_eq!(area.contains_signed(2,3), false);
+    assert_eq!(area.contains_signed(2,-1), false);
+    assert_eq!(area.step((2,2), LEFT), Some((1,2)));
+    assert_eq!(area.all_positions().collect::<Vec<Position>>(), vec![
+        (0,0),(1,0),(2,0),
+        (0,1),(1,1),(2,1),
+        (0,2),(1,2),(2,2)
+    ]);
 }
 
 //////////////////////////////////////////
@@ -75,8 +116,13 @@ pub trait CharBijection {
 }
 
 pub struct PixelMap<E:CharBijection> {
-    area:Area,
+    pub area:Area,
     pixels:Vec<Vec<E>>
+}
+
+impl<E:CharBijection> PixelMap<E> {
+    pub fn width(&self) -> usize { self.area.width }
+    pub fn height(&self) -> usize { self.area.height }
 }
 
 impl<E:CharBijection> PixelMap<E> {
@@ -131,6 +177,8 @@ fn test_from_strings() {
 BCA";
     let pixel_map = TestMap::from_strings(input.split('\n'));
     assert_eq!(pixel_map.area, Area{width:3, height:2});
+    assert_eq!(pixel_map.width(), 3);
+    assert_eq!(pixel_map.height(), 2);
     assert_eq!(pixel_map.pixels, vec![
         vec![TestEnum::A, TestEnum::B, TestEnum::C],
         vec![TestEnum::B, TestEnum::C, TestEnum::A]
