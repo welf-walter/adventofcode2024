@@ -50,6 +50,9 @@ pub struct Area {
 }
 
 impl Area {
+    pub fn contains_signed(&self, x:i32, y:i32) -> bool {
+        x >= 0 && (x as usize) < self.width && y >= 0 && (y as usize) < self.height
+    }
     // return None if out of area
     pub fn step(&self, pos:Position, direction:Direction) -> Option<Position> {
         match direction {
