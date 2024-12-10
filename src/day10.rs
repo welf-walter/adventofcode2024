@@ -49,6 +49,39 @@ fn sum_of_trailhead_scores(map:&Map) -> usize {
     map.area.all_positions().filter(is_trailhead).map(score_of_trailhead).sum()
 }
 
+// count all ways to the peak from start_position
+fn count_ways_to_peak(map:&Map, start_position:Position) -> u32 {
+    if map.at(start_position).value == 9 {
+        return 1;
+    }
+
+    let mut counter = 0;
+    for direction in [LEFT, UP, RIGHT, DOWN] {
+        if let Some(next_position) = map.area.step(start_position, direction) {
+            if map.at(next_position).value == map.at(start_position).value + 1 {
+                counter += count_ways_to_peak(map, next_position);
+            }
+        }
+    }
+
+    counter
+}
+
+fn sum_of_trailhead_rating(map:&Map) -> u32 {
+
+    let is_trailhead = |position:&Position| {
+        map.at(*position).value == 0
+    };
+
+    let rating_of_trailhead = |trailhead:Position| {
+        count_ways_to_peak(&map, trailhead)
+    };
+
+    map.area.all_positions().filter(is_trailhead).map(rating_of_trailhead).sum()
+}
+
+
+
 #[test]
 fn test_trail() {
     let input1 = 
@@ -86,6 +119,17 @@ fn test_trail() {
     assert_eq!(reachable_peaks(&map2, (6,6)).len(), 3);
     assert_eq!(reachable_peaks(&map2, (1,7)).len(), 5);
     assert_eq!(sum_of_trailhead_scores(&map2), 36);
+    assert_eq!(sum_of_trailhead_rating(&map2), 81);
+
+    let input3 =
+"012345
+123456
+234567
+345678
+426789
+567892";
+    let map3 = Map::from_strings(input3.split('\n'));
+    assert_eq!(sum_of_trailhead_rating(&map3), 227);
 
 }
 
