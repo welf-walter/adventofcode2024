@@ -91,3 +91,23 @@ fn test_trail() {
     assert_eq!(sum_of_trailhead_scores(&map2), 36);
 
 }
+
+//////////////////////////////////////////
+/// Puzzle
+//////////////////////////////////////////
+
+use std::fs::File;
+use std::io::BufRead;
+use std::io::BufReader;
+
+
+pub fn puzzle() {
+    let file = File::open("input/day10.txt").expect("Could not open input/day10.txt");
+    let reader = BufReader::new(file);
+
+    let lines:Vec<String> = reader.lines().map( |line| line.unwrap() ).collect();
+    let map = Map::from_strings(lines.iter().map( |line| line.as_str() ));
+
+    println!("Day 10, Part 1: Sum of trailhead scores is {}", sum_of_trailhead_scores(&map));
+
+}
