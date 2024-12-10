@@ -120,12 +120,14 @@ pub struct PixelMap<E:CharBijection> {
     pixels:Vec<Vec<E>>
 }
 
-impl<E:CharBijection> PixelMap<E> {
+impl<E:CharBijection+Copy> PixelMap<E> {
     pub fn width(&self) -> usize { self.area.width }
     pub fn height(&self) -> usize { self.area.height }
-}
 
-impl<E:CharBijection> PixelMap<E> {
+    fn at(&self, position:Position) -> E {
+        self.pixels[position.1][position.0]
+    }
+
     fn from_strings<'a>(lines:impl Iterator<Item=&'a str>) -> Self {
         let mut width = 0;
         let mut height = 0;
@@ -144,7 +146,7 @@ impl<E:CharBijection> PixelMap<E> {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone, Copy)]
 enum TestEnum {
     A,
     B,
@@ -183,6 +185,7 @@ BCA";
         vec![TestEnum::A, TestEnum::B, TestEnum::C],
         vec![TestEnum::B, TestEnum::C, TestEnum::A]
     ]);
+    assert_eq!(pixel_map.at((1,1)), TestEnum::C);
     assert_eq!(pixel_map.pixels.iter().map(|line| line.iter().map( |e| e.to_char()).collect::<Vec<_>>()).collect::<Vec<_>>(), vec![
         vec!['A', 'B', 'C'],
         vec!['B', 'C', 'A']
