@@ -20,7 +20,7 @@ impl crate::maps::CharBijection for Height {
 
 type Map = PixelMap<Height>;
 
-// how many 
+// list all peaks that can be reached from start_position
 fn reachable_peaks(map:&Map, start_position:Position) -> HashSet<Position> {
     if map.at(start_position).value == 9 {
         return HashSet::from([start_position]);
@@ -39,6 +39,19 @@ fn reachable_peaks(map:&Map, start_position:Position) -> HashSet<Position> {
     peaks
 }
 
+fn sum_of_trailhead_scores(map:&Map) -> usize {
+
+    let is_trailhead = |position:&Position| {
+        map.at(*position).value == 0
+    };
+
+    let score_of_trailhead = |trailhead:Position| {
+        reachable_peaks(&map, trailhead).len()
+    };
+
+    map.area.all_positions().filter(is_trailhead).map(score_of_trailhead).sum()
+}
+
 #[test]
 fn test_trail() {
     let input1 = 
@@ -51,6 +64,7 @@ fn test_trail() {
     assert_eq!(map1.height(), 4);
     assert_eq!(reachable_peaks(&map1, (0,3)), HashSet::from([(0,3)]));
     assert_eq!(reachable_peaks(&map1, (0,3)), HashSet::from([(0,3)]));
+    assert_eq!(sum_of_trailhead_scores(&map1), 1);
 
     let input2 =
 "89010123
@@ -74,5 +88,6 @@ fn test_trail() {
     assert_eq!(reachable_peaks(&map2, (0,6)).len(), 5);
     assert_eq!(reachable_peaks(&map2, (6,6)).len(), 3);
     assert_eq!(reachable_peaks(&map2, (1,7)).len(), 5);
+    assert_eq!(sum_of_trailhead_scores(&map2), 36);
 
 }
