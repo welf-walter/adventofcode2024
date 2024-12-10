@@ -3,7 +3,6 @@ use std::collections::HashSet;
 use crate::maps::Position;
 
 use crate::maps::Direction;
-use crate::maps::Direction::*;
 use crate::maps::Area;
 
 struct Map {
@@ -56,8 +55,8 @@ fn test_map()
     assert_eq!(map.start, (4,6));
     assert_eq!(map.obstructions.len(), 8);
     assert!(map.obstructions.contains(&(2,3)));
-    assert_eq!(map.area.step((3,4),UP),Some((3,3)));
-    assert_eq!(map.area.step((3,0),UP),None);
+    assert_eq!(map.area.step((3,4),Direction::UP),Some((3,3)));
+    assert_eq!(map.area.step((3,0),Direction::UP),None);
 }
 
 fn walk(map:&Map) -> HashSet<Position> {

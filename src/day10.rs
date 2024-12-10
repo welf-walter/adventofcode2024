@@ -9,12 +9,9 @@ struct Height {
     value:u32
 }
 
-impl crate::maps::CharBijection for Height {
+impl crate::maps::FromChar for Height {
     fn from_char(c:char) -> Self {
         Height { value: c.to_digit(10).unwrap() }
-    }
-    fn to_char(&self) -> char {
-        char::from_digit(self.value, 10).unwrap()
     }
 }
 

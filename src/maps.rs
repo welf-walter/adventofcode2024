@@ -110,18 +110,19 @@ fn test_area() {
 /// EnumMap
 //////////////////////////////////////////
 
-pub trait CharBijection {
+pub trait FromChar {
     fn from_char(c:char) -> Self;
-    fn to_char(&self) -> char;
 }
 
-pub struct PixelMap<E:CharBijection> {
+pub struct PixelMap<E:FromChar> {
     pub area:Area,
     pixels:Vec<Vec<E>>
 }
 
-impl<E:CharBijection+Copy> PixelMap<E> {
+impl<E:FromChar+Copy> PixelMap<E> {
+    #[cfg(test)]
     pub fn width(&self) -> usize { self.area.width }
+    #[cfg(test)]
     pub fn height(&self) -> usize { self.area.height }
 
     pub fn at(&self, position:Position) -> E {
@@ -153,20 +154,13 @@ enum TestEnum {
     C
 }
 
-impl CharBijection for TestEnum {
+impl FromChar for TestEnum {
     fn from_char(c:char) -> Self {
         match c {
             'A' => TestEnum::A,
             'B' => TestEnum::B,
             'C' => TestEnum::C,
             _ => panic!("Unexpected character {} for TestEnum", c)
-        }
-    }
-    fn to_char(&self) -> char {
-        match self {
-            TestEnum::A => 'A',
-            TestEnum::B => 'B',
-            TestEnum::C => 'C'
         }
     }
 }
@@ -186,8 +180,8 @@ BCA";
         vec![TestEnum::B, TestEnum::C, TestEnum::A]
     ]);
     assert_eq!(pixel_map.at((1,1)), TestEnum::C);
-    assert_eq!(pixel_map.pixels.iter().map(|line| line.iter().map( |e| e.to_char()).collect::<Vec<_>>()).collect::<Vec<_>>(), vec![
-        vec!['A', 'B', 'C'],
-        vec!['B', 'C', 'A']
+    assert_eq!(pixel_map.area.all_positions().map( |pos| pixel_map.at(pos) ).collect::<Vec<_>>(), vec![
+        TestEnum::A, TestEnum::B, TestEnum::C,
+        TestEnum::B, TestEnum::C, TestEnum::A
     ]);
 }
