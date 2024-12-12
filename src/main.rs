@@ -41,7 +41,7 @@ fn main() {
             9=>day9::puzzle(),
             10=>day10::puzzle(),
             11=>{}, //day11::puzzle(),
-            12=>{}, //day12::puzzle(),
+            12=>day12::puzzle(),
             otherday=>println!("Unknown day {}", otherday)
         }
     }

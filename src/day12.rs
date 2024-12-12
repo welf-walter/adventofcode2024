@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use crate::maps::Position;
 use crate::maps::Direction;
 
-const VERBOSE:bool = true;
+const VERBOSE:bool = false;
 
 type Plant = char;
 type PlantMap = crate::maps::PixelMap<Plant>;
@@ -121,4 +121,26 @@ MMMISSJEEE";
     let regions3 = extract_regions(&map3);
     assert_eq!(regions3.len(), 11);
     assert_eq!(sum_of_region_fencing_prices(&regions3), 1930);
+}
+
+//////////////////////////////////////////
+/// Puzzle
+//////////////////////////////////////////
+
+use std::fs::File;
+use std::io::BufRead;
+use std::io::BufReader;
+
+
+pub fn puzzle() {
+    let file = File::open("input/day12.txt").expect("Could not open input/day12.txt");
+    let reader = BufReader::new(file);
+
+    let lines:Vec<String> = reader.lines().map( |line| line.unwrap() ).collect();
+    let map = PlantMap::from_strings(lines.iter().map( |line| line.as_str() ));
+
+    let regions = extract_regions(&map);
+
+    println!("Day 12, Part 1: Sum of region-fencing-prices {}", sum_of_region_fencing_prices(&regions));
+
 }
