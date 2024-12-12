@@ -1,5 +1,9 @@
+use std::collections::HashSet;
+
 use crate::maps::Position;
 use crate::maps::Direction;
+
+const VERBOSE:bool = true;
 
 type Plant = char;
 type PlantMap = crate::maps::PixelMap<Plant>;
@@ -11,35 +15,37 @@ struct Region {
     perimeter:u32 // = number of different neighbours
 }
 
-// plant already handled. ignore it.
-const DONE:Plant = '.';
-
-fn extract_region(map:&mut PlantMap, start_position:Position) -> Region {
+fn extract_region(map:&PlantMap, start_position:Position, positions_done:&mut HashSet<Position>) -> Region {
     let mut position_backlog = vec![start_position];
     let plant = map.at(start_position);
+    if VERBOSE { println!("extract region {}", plant);}
     let mut area = 0;
     let mut perimeter = 0;
     while position_backlog.len() > 0 {
         let current_pos = position_backlog.pop().unwrap();
+        assert!(!positions_done.contains(&current_pos));
+        positions_done.insert(current_pos);
+
         let current_plant = map.at(current_pos);
-        assert!(current_plant != DONE);
-        map.set_at(current_pos, DONE);
+        if VERBOSE { print!("  ({},{}): {} -> ", current_pos.0, current_pos.1, current_plant);}
         if current_plant == plant {
             area += 1;
             for direction in Direction::all_directions() {
-                match  map.area.step(current_pos, direction) {
+                match map.area.step(current_pos, direction) {
                     Some(next_pos) => {
-                        if map.at(next_pos) != DONE {
+                        if !positions_done.contains(&next_pos) {
                             position_backlog.push(next_pos);
                         }
                     },
                     None => {
                         perimeter += 1;
+                        if VERBOSE { println!("border");}
                     }
                 }
             }
         } else {
             perimeter += 1;
+            if VERBOSE { println!("perimeter");}
         }
     }
 
@@ -48,10 +54,10 @@ fn extract_region(map:&mut PlantMap, start_position:Position) -> Region {
 
 fn extract_regions(map:&PlantMap) -> Vec<Region> {
     let mut regions = Vec::new();
-    let mut workmap:PlantMap = map.clone();
+    let mut positions_done = HashSet::new();
     for pos in map.area.all_positions() {
-        if workmap.at(pos) != DONE {
-            regions.push(extract_region(&mut workmap, pos));
+        if !positions_done.contains(&pos) {
+            regions.push(extract_region(&map, pos, &mut positions_done));
         }
     }
     regions
