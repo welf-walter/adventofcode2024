@@ -30,6 +30,9 @@ impl Direction {
             RIGHT => UP
         }
     }
+    pub fn all_directions() -> [Direction;4] {
+        [RIGHT, DOWN, LEFT, UP]
+    }
 }
 
 use crate::maps::Direction::*;
@@ -44,7 +47,7 @@ fn test_direction() {
 //////////////////////////////////////////
 
 // some bounded area to move in
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct Area {
     pub width:usize,
     pub height:usize
@@ -114,6 +117,7 @@ pub trait FromChar {
     fn from_char(c:char) -> Self;
 }
 
+#[derive(Clone)]
 pub struct PixelMap<E:FromChar> {
     pub area:Area,
     pixels:Vec<Vec<E>>
@@ -127,6 +131,10 @@ impl<E:FromChar+Copy> PixelMap<E> {
 
     pub fn at(&self, position:Position) -> E {
         self.pixels[position.1][position.0]
+    }
+
+    pub fn set_at(&mut self, position:Position, value:E) {
+        self.pixels[position.1][position.0] = value;
     }
 
     pub fn from_strings<'a>(lines:impl Iterator<Item=&'a str>) -> Self {
@@ -152,6 +160,10 @@ enum TestEnum {
     A,
     B,
     C
+}
+
+impl FromChar for char {
+    fn from_char(c:char) -> Self { c }
 }
 
 impl FromChar for TestEnum {
