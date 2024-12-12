@@ -93,7 +93,7 @@ EEEC";
         Region{plant:'D', area: 1, perimeter: 4},
         Region{plant:'E', area: 3, perimeter: 8}
     ]);
-    assert_eq!(sum_of_region_fencing_prices(&region1), 140);
+    assert_eq!(sum_of_region_fencing_prices(&regions1), 140);
 
     let input2 =
 "OOOOO
@@ -104,7 +104,7 @@ OOOOO";
     let map2 = PlantMap::from_strings(input2.split('\n'));
     let regions2 = extract_regions(&map2);
     assert_eq!(regions2.len(), 5);
-    assert_eq!(sum_of_region_fencing_prices(&region2), 772);
+    assert_eq!(sum_of_region_fencing_prices(&regions2), 772);
 
     let input3 =
 "RRRRIICCFF
@@ -120,5 +120,5 @@ MMMISSJEEE";
     let map3 = PlantMap::from_strings(input3.split('\n'));
     let regions3 = extract_regions(&map3);
     assert_eq!(regions3.len(), 11);
-    assert_eq!(sum_of_region_fencing_prices(&region2), 1930);
+    assert_eq!(sum_of_region_fencing_prices(&regions3), 1930);
 }
