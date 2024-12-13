@@ -9,7 +9,11 @@ pub enum Direction {
     UP,
     RIGHT,
     DOWN,
-    LEFT
+    LEFT,
+    UP_RIGHT,
+    DOWN_RIGHT,
+    DOWN_LEFT,
+    UP_LEFT,
 }
 
 impl Direction {
@@ -18,7 +22,11 @@ impl Direction {
             UP    => RIGHT,
             RIGHT => DOWN,
             DOWN  => LEFT,
-            LEFT  => UP
+            LEFT  => UP,
+            UP_RIGHT   => DOWN_RIGHT,
+            DOWN_RIGHT => DOWN_LEFT,
+            DOWN_LEFT  => UP_LEFT,
+            UP_LEFT    => UP_RIGHT
         }
     }
     #[cfg(test)]
@@ -27,10 +35,14 @@ impl Direction {
             UP    => LEFT,
             LEFT  => DOWN,
             DOWN  => RIGHT,
-            RIGHT => UP
+            RIGHT => UP,
+            DOWN_RIGHT => UP_RIGHT,
+            DOWN_LEFT  => DOWN_RIGHT,
+            UP_LEFT    => DOWN_LEFT,
+            UP_RIGHT   => UP_LEFT
         }
     }
-    pub fn all_directions() -> [Direction;4] {
+    pub fn four_directions() -> [Direction;4] {
         [RIGHT, DOWN, LEFT, UP]
     }
 }
@@ -82,11 +94,17 @@ impl Area {
     }
     // return None if out of area
     pub fn step(&self, pos:Position, direction:Direction) -> Option<Position> {
+        let W = self.width-1;
+        let H = self.height-1;
         match direction {
-            UP    => { if pos.1 > 0             { return Some((pos.0  ,pos.1-1)); } else { return None; }},
-            RIGHT => { if pos.0 < self.width-1  { return Some((pos.0+1,pos.1  )); } else { return None; }},
-            DOWN  => { if pos.1 < self.height-1 { return Some((pos.0  ,pos.1+1)); } else { return None; }},
-            LEFT  => { if pos.0 > 0             { return Some((pos.0-1,pos.1  )); } else { return None; }}
+            UP    => { if pos.1 > 0 { return Some((pos.0  ,pos.1-1)); } else { return None; }},
+            RIGHT => { if pos.0 < W { return Some((pos.0+1,pos.1  )); } else { return None; }},
+            DOWN  => { if pos.1 < H { return Some((pos.0  ,pos.1+1)); } else { return None; }},
+            LEFT  => { if pos.0 > 0 { return Some((pos.0-1,pos.1  )); } else { return None; }},
+            UP_RIGHT   => { if (pos.0 < W) & (pos.1 > 0) { return Some((pos.0+1,pos.1-1)); } else { return None; }},
+            DOWN_RIGHT => { if (pos.0 < W) & (pos.1 < W) { return Some((pos.0+1,pos.1+1)); } else { return None; }},
+            DOWN_LEFT  => { if (pos.0 > 0) & (pos.1 < W) { return Some((pos.0-1,pos.1+1)); } else { return None; }},
+            UP_LEFT    => { if (pos.0 > 0) & (pos.1 > 0) { return Some((pos.0-1,pos.1-1)); } else { return None; }}
         }
     }
 

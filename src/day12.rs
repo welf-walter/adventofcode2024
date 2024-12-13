@@ -2,6 +2,7 @@ use std::collections::HashSet;
 
 use crate::maps::Position;
 use crate::maps::Direction;
+use Direction::*;
 
 const VERBOSE:bool = false;
 
@@ -37,7 +38,7 @@ fn extract_region(map:&PlantMap, start_position:Position, positions_done:&mut Ha
         positions_done.insert(current_pos);
         area += 1;
         let mut neigbour_equal : Vec<bool> = Vec::new();
-        for direction in Direction::all_directions() {
+        for direction in Direction::four_directions() {
             match map.area.step(current_pos, direction) {
                 Some(next_pos) => {
                     let next_plant = map.at(next_pos);
@@ -46,11 +47,12 @@ fn extract_region(map:&PlantMap, start_position:Position, positions_done:&mut Ha
                             position_backlog.push(next_pos);
                             if VERBOSE { print!("Put ({},{}) to backlog ", next_pos.0, next_pos.1);}
                         }
+                        neigbour_equal.push(true);
                     } else {
                         perimeter += 1;
                         if VERBOSE { println!("{:?} = perimeter", direction);}
+                        neigbour_equal.push(false);
                     }
-                    neigbour_equal.push(true);
                 },
                 None => {
                     perimeter += 1;
@@ -78,6 +80,14 @@ fn extract_region(map:&PlantMap, start_position:Position, positions_done:&mut Ha
             [false, false, false, false] => { corners += 4 },  // minibox
             _ => unreachable!()
         }
+        // now we need to check for inbound edges
+        // AB
+        // AA
+        if neigbour_equal[0] && neigbour_equal[1] && { let diag = map.area.step(current_pos,DOWN_RIGHT); diag.is_some() && map.at(diag.unwrap()) != current_plant } { corners += 1 };
+        if neigbour_equal[1] && neigbour_equal[2] && { let diag = map.area.step(current_pos,DOWN_LEFT);  diag.is_some() && map.at(diag.unwrap()) != current_plant } { corners += 1 };
+        if neigbour_equal[2] && neigbour_equal[3] && { let diag = map.area.step(current_pos,UP_LEFT);    diag.is_some() && map.at(diag.unwrap()) != current_plant } { corners += 1 };
+        if neigbour_equal[3] && neigbour_equal[0] && { let diag = map.area.step(current_pos,UP_RIGHT);   diag.is_some() && map.at(diag.unwrap()) != current_plant } { corners += 1 };
+
         if VERBOSE { println!("");}
 
     }
@@ -122,7 +132,7 @@ EEEC";
         Region{plant:'E', area: 3, perimeter: 8,  corners: 4}
     ]);
     assert_eq!(sum_of_region_fencing_prices(&regions1), 140);
-    assert_eq!(sum_of_region_fencing_prices(&regions1), 80);
+    assert_eq!(sum_of_region_fencing_prices_discounted(&regions1), 80);
 
     let input2 =
 "OOOOO
@@ -164,7 +174,7 @@ EEEEE";
     assert_eq!(regions4.len(), 3);
     assert_eq!(regions4[0].area, 17);
     assert_eq!(regions4[0].corners, 12);
-    assert_eq!(regions4[1].area, 12);
+    assert_eq!(regions4[1].area, 4);
     assert_eq!(regions4[1].corners, 4);
     assert_eq!(sum_of_region_fencing_prices_discounted(&regions4), 236);
 
@@ -178,7 +188,7 @@ AAAAAA";
     let map5 = PlantMap::from_strings(input5.split('\n'));
     let regions5 = extract_regions(&map5);
     assert_eq!(regions5.len(), 3);
-    assert_eq!(sum_of_region_fencing_prices_discounted(&regions4), 368);
+    assert_eq!(sum_of_region_fencing_prices_discounted(&regions5), 368);
 }
 
 //////////////////////////////////////////
