@@ -210,5 +210,6 @@ pub fn puzzle() {
     let regions = extract_regions(&map);
 
     println!("Day 12, Part 1: Sum of region-fencing-prices {}", sum_of_region_fencing_prices(&regions));
+    println!("Day 12, Part 2: Sum of region-fencing-prices (discounted) {}", sum_of_region_fencing_prices_discounted(&regions));
 
 }
