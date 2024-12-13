@@ -12,7 +12,8 @@ type PlantMap = crate::maps::PixelMap<Plant>;
 struct Region {
     plant:Plant,
     area:u32, // = number of adjacent pixels
-    perimeter:u32 // = number of different neighbours
+    perimeter:u32, // = number of different neighbours
+    corners:u32 // = number of sides
 }
 
 fn extract_region(map:&PlantMap, start_position:Position, positions_done:&mut HashSet<Position>) -> Region {
@@ -21,6 +22,7 @@ fn extract_region(map:&PlantMap, start_position:Position, positions_done:&mut Ha
     if VERBOSE { println!("extract region {}", plant);}
     let mut area = 0;
     let mut perimeter = 0;
+    let mut corners = 0;
     while position_backlog.len() > 0 {
         let current_pos = position_backlog.pop().unwrap();
 
@@ -34,6 +36,7 @@ fn extract_region(map:&PlantMap, start_position:Position, positions_done:&mut Ha
         }
         positions_done.insert(current_pos);
         area += 1;
+        let mut neigbour_equal : Vec<bool> = Vec::new();
         for direction in Direction::all_directions() {
             match map.area.step(current_pos, direction) {
                 Some(next_pos) => {
@@ -47,12 +50,32 @@ fn extract_region(map:&PlantMap, start_position:Position, positions_done:&mut Ha
                         perimeter += 1;
                         if VERBOSE { println!("{:?} = perimeter", direction);}
                     }
+                    neigbour_equal.push(true);
                 },
                 None => {
                     perimeter += 1;
                     if VERBOSE { print!("{:?} = border ", direction);}
+                    neigbour_equal.push(false);
                 }
             }
+        }
+        match array:From(neigbour_equal) {
+            [true,  true,  true,  true ] => {}, // inner point
+            [true,  true,  true,  false],
+            [true,  true,  false, true ],
+            [true,  false, true,  true ],
+            [false, true,  true,  true ] => {}, // side
+            [true,  false, true,  false],
+            [false, true,  false, true ] => {}, // tunnel
+            [false, true,  true,  false],
+            [false, false, true,  true ],
+            [true,  false, false, true ],
+            [true,  true,  false, false] => { corner += 1 }, // corner
+            [false, false, false, true ],
+            [false, false, true,  true ],
+            [false, true,  false, false],
+            [true,  false, false, false] => { corner += 2 }, // half-island
+            [false, false, false, false] => { corner += 4 }  // minibox
         }
         if VERBOSE { println!("");}
 
@@ -76,6 +99,10 @@ fn sum_of_region_fencing_prices(regions:&Vec<Region>) -> u32 {
     regions.iter().map(|region| region.area * region.perimeter).sum()
 }
 
+fn sum_of_region_fencing_prices_discounted(regions:&Vec<Region>) -> u32 {
+    regions.iter().map(|region| region.area * region.corners).sum()
+}
+
 #[test]
 fn test_region() {
     let input1 =
@@ -87,13 +114,14 @@ EEEC";
     assert_eq!(map1.at((2,1)), 'C');
     let regions1 = extract_regions(&map1);
     assert_eq!(regions1, vec![
-        Region{plant:'A', area: 4, perimeter: 10},
-        Region{plant:'B', area: 4, perimeter: 8},
-        Region{plant:'C', area: 4, perimeter: 10},
-        Region{plant:'D', area: 1, perimeter: 4},
-        Region{plant:'E', area: 3, perimeter: 8}
+        Region{plant:'A', area: 4, perimeter: 10, corners: 4},
+        Region{plant:'B', area: 4, perimeter: 8,  corners: 4},
+        Region{plant:'C', area: 4, perimeter: 10, corners: 8},
+        Region{plant:'D', area: 1, perimeter: 4,  corners: 4},
+        Region{plant:'E', area: 3, perimeter: 8,  corners: 4}
     ]);
     assert_eq!(sum_of_region_fencing_prices(&regions1), 140);
+    assert_eq!(sum_of_region_fencing_prices(&regions1), 80);
 
     let input2 =
 "OOOOO
@@ -105,6 +133,7 @@ OOOOO";
     let regions2 = extract_regions(&map2);
     assert_eq!(regions2.len(), 5);
     assert_eq!(sum_of_region_fencing_prices(&regions2), 772);
+    assert_eq!(sum_of_region_fencing_prices_discounted(&regions2), 436);
 
     let input3 =
 "RRRRIICCFF
@@ -121,6 +150,34 @@ MMMISSJEEE";
     let regions3 = extract_regions(&map3);
     assert_eq!(regions3.len(), 11);
     assert_eq!(sum_of_region_fencing_prices(&regions3), 1930);
+    assert_eq!(sum_of_region_fencing_prices_discounted(&regions3), 1206);
+
+    let input4 =
+"EEEEE
+EXXXX
+EEEEE
+EXXXX
+EEEEE";
+    let map4 = PlantMap::from_strings(input4.split('\n'));
+    let regions4 = extract_regions(&map4);
+    assert_eq!(regions4.len(), 3);
+    assert_eq!(regions4[0].area, 17);
+    assert_eq!(regions4[0].corners, 12);
+    assert_eq!(regions4[1].area, 12);
+    assert_eq!(regions4[1].corners, 4);
+    assert_eq!(sum_of_region_fencing_prices_discounted(&regions4), 236);
+
+    let input5 =
+"AAAAAA
+AAABBA
+AAABBA
+ABBAAA
+ABBAAA
+AAAAAA";
+    let map5 = PlantMap::from_strings(input5.split('\n'));
+    let regions5 = extract_regions(&map5);
+    assert_eq!(regions5.len(), 3);
+    assert_eq!(sum_of_region_fencing_prices_discounted(&regions4), 368);
 }
 
 //////////////////////////////////////////
