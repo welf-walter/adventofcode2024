@@ -59,29 +59,30 @@ fn extract_region(map:&PlantMap, start_position:Position, positions_done:&mut Ha
                 }
             }
         }
-        match array:From(neigbour_equal) {
+        match neigbour_equal.as_slice() {
             [true,  true,  true,  true ] => {}, // inner point
-            [true,  true,  true,  false],
-            [true,  true,  false, true ],
-            [true,  false, true,  true ],
+            [true,  true,  true,  false] |
+            [true,  true,  false, true ] |
+            [true,  false, true,  true ] |
             [false, true,  true,  true ] => {}, // side
-            [true,  false, true,  false],
+            [true,  false, true,  false] |
             [false, true,  false, true ] => {}, // tunnel
-            [false, true,  true,  false],
-            [false, false, true,  true ],
-            [true,  false, false, true ],
-            [true,  true,  false, false] => { corner += 1 }, // corner
-            [false, false, false, true ],
-            [false, false, true,  true ],
-            [false, true,  false, false],
-            [true,  false, false, false] => { corner += 2 }, // half-island
-            [false, false, false, false] => { corner += 4 }  // minibox
+            [false, true,  true,  false] |
+            [false, false, true,  true ] |
+            [true,  false, false, true ] |
+            [true,  true,  false, false] => { corners += 1 }, // corner
+            [false, false, false, true ] |
+            [false, false, true,  false] |
+            [false, true,  false, false] |
+            [true,  false, false, false] => { corners += 2 }, // half-island
+            [false, false, false, false] => { corners += 4 },  // minibox
+            _ => unreachable!()
         }
         if VERBOSE { println!("");}
 
     }
 
-    Region { plant, area, perimeter }
+    Region { plant, area, perimeter, corners }
 }
 
 fn extract_regions(map:&PlantMap) -> Vec<Region> {
