@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use crate::maps::PixelMap;
 use crate::maps::Position;
-use crate::maps::Direction::*;
+use crate::maps::Direction;
 
 #[derive(Clone, Copy)]
 struct Height {
@@ -24,7 +24,7 @@ fn reachable_peaks(map:&Map, start_position:Position) -> HashSet<Position> {
     }
 
     let mut peaks:HashSet<Position> = HashSet::new();
-    for direction in [LEFT, UP, RIGHT, DOWN] {
+    for direction in Direction::four_directions() {
         if let Some(next_position) = map.area.step(start_position, direction) {
             if map.at(next_position).value == map.at(start_position).value + 1 {
                 let new_peaks = reachable_peaks(map, next_position);
@@ -56,7 +56,7 @@ fn count_ways_to_peak(map:&Map, start_position:Position) -> u32 {
     }
 
     let mut counter = 0;
-    for direction in [LEFT, UP, RIGHT, DOWN] {
+    for direction in Direction::four_directions() {
         if let Some(next_position) = map.area.step(start_position, direction) {
             if map.at(next_position).value == map.at(start_position).value + 1 {
                 counter += count_ways_to_peak(map, next_position);

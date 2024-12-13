@@ -83,10 +83,10 @@ fn extract_region(map:&PlantMap, start_position:Position, positions_done:&mut Ha
         // now we need to check for inbound edges
         // AB
         // AA
-        if neigbour_equal[0] && neigbour_equal[1] && { let diag = map.area.step(current_pos,DOWN_RIGHT); diag.is_some() && map.at(diag.unwrap()) != current_plant } { corners += 1 };
-        if neigbour_equal[1] && neigbour_equal[2] && { let diag = map.area.step(current_pos,DOWN_LEFT);  diag.is_some() && map.at(diag.unwrap()) != current_plant } { corners += 1 };
-        if neigbour_equal[2] && neigbour_equal[3] && { let diag = map.area.step(current_pos,UP_LEFT);    diag.is_some() && map.at(diag.unwrap()) != current_plant } { corners += 1 };
-        if neigbour_equal[3] && neigbour_equal[0] && { let diag = map.area.step(current_pos,UP_RIGHT);   diag.is_some() && map.at(diag.unwrap()) != current_plant } { corners += 1 };
+        if neigbour_equal[0] && neigbour_equal[1] && { let diag = map.area.step(current_pos,DownRight); diag.is_some() && map.at(diag.unwrap()) != current_plant } { corners += 1 };
+        if neigbour_equal[1] && neigbour_equal[2] && { let diag = map.area.step(current_pos,DownLeft);  diag.is_some() && map.at(diag.unwrap()) != current_plant } { corners += 1 };
+        if neigbour_equal[2] && neigbour_equal[3] && { let diag = map.area.step(current_pos,UpLeft);    diag.is_some() && map.at(diag.unwrap()) != current_plant } { corners += 1 };
+        if neigbour_equal[3] && neigbour_equal[0] && { let diag = map.area.step(current_pos,UpRight);   diag.is_some() && map.at(diag.unwrap()) != current_plant } { corners += 1 };
 
         if VERBOSE { println!("");}
 

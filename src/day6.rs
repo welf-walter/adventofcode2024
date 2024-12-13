@@ -55,13 +55,13 @@ fn test_map()
     assert_eq!(map.start, (4,6));
     assert_eq!(map.obstructions.len(), 8);
     assert!(map.obstructions.contains(&(2,3)));
-    assert_eq!(map.area.step((3,4),Direction::UP),Some((3,3)));
-    assert_eq!(map.area.step((3,0),Direction::UP),None);
+    assert_eq!(map.area.step((3,4),Direction::Up),Some((3,3)));
+    assert_eq!(map.area.step((3,0),Direction::Up),None);
 }
 
 fn walk(map:&Map) -> HashSet<Position> {
     let mut pos = map.start;
-    let mut direction = Direction::UP;
+    let mut direction = Direction::Up;
     let mut positions:HashSet<Position> = HashSet::new();
     loop {
         positions.insert(pos);
@@ -82,7 +82,7 @@ fn walk(map:&Map) -> HashSet<Position> {
 
 fn walk_is_loop(map:&Map, additional_obstruction:Position) -> bool {
     let mut pos = map.start;
-    let mut direction = Direction::UP;
+    let mut direction = Direction::Up;
     let mut posdirs:HashSet<(Position,Direction)> = HashSet::new();
     loop {
         if posdirs.contains(&(pos,direction)) {

@@ -6,44 +6,44 @@ pub type Position = (/* x: */usize,/* y: */usize);
 
 #[derive(Eq, Hash, PartialEq, Debug,Copy,Clone)]
 pub enum Direction {
-    UP,
-    RIGHT,
-    DOWN,
-    LEFT,
-    UP_RIGHT,
-    DOWN_RIGHT,
-    DOWN_LEFT,
-    UP_LEFT,
+    Up,
+    Right,
+    Down,
+    Left,
+    UpRight,
+    DownRight,
+    DownLeft,
+    UpLeft,
 }
 
 impl Direction {
     pub fn turn_right(&self) -> Direction {
         match self {
-            UP    => RIGHT,
-            RIGHT => DOWN,
-            DOWN  => LEFT,
-            LEFT  => UP,
-            UP_RIGHT   => DOWN_RIGHT,
-            DOWN_RIGHT => DOWN_LEFT,
-            DOWN_LEFT  => UP_LEFT,
-            UP_LEFT    => UP_RIGHT
+            Up    => Right,
+            Right => Down,
+            Down  => Left,
+            Left  => Up,
+            UpRight   => DownRight,
+            DownRight => DownLeft,
+            DownLeft  => UpLeft,
+            UpLeft    => UpRight
         }
     }
     #[cfg(test)]
     pub fn turn_left(&self) -> Direction {
         match self {
-            UP    => LEFT,
-            LEFT  => DOWN,
-            DOWN  => RIGHT,
-            RIGHT => UP,
-            DOWN_RIGHT => UP_RIGHT,
-            DOWN_LEFT  => DOWN_RIGHT,
-            UP_LEFT    => DOWN_LEFT,
-            UP_RIGHT   => UP_LEFT
+            Up    => Left,
+            Left  => Down,
+            Down  => Right,
+            Right => Up,
+            DownRight => UpRight,
+            DownLeft  => DownRight,
+            UpLeft    => DownLeft,
+            UpRight   => UpLeft
         }
     }
     pub fn four_directions() -> [Direction;4] {
-        [RIGHT, DOWN, LEFT, UP]
+        [Right, Down, Left, Up]
     }
 }
 
@@ -51,7 +51,7 @@ use crate::maps::Direction::*;
 
 #[test]
 fn test_direction() {
-    assert_eq!(LEFT.turn_right().turn_right().turn_right(), LEFT.turn_left());
+    assert_eq!(Left.turn_right().turn_right().turn_right(), Left.turn_left());
 }
 
 //////////////////////////////////////////
@@ -94,17 +94,17 @@ impl Area {
     }
     // return None if out of area
     pub fn step(&self, pos:Position, direction:Direction) -> Option<Position> {
-        let W = self.width-1;
-        let H = self.height-1;
+        let w = self.width-1;
+        let h = self.height-1;
         match direction {
-            UP    => { if pos.1 > 0 { return Some((pos.0  ,pos.1-1)); } else { return None; }},
-            RIGHT => { if pos.0 < W { return Some((pos.0+1,pos.1  )); } else { return None; }},
-            DOWN  => { if pos.1 < H { return Some((pos.0  ,pos.1+1)); } else { return None; }},
-            LEFT  => { if pos.0 > 0 { return Some((pos.0-1,pos.1  )); } else { return None; }},
-            UP_RIGHT   => { if (pos.0 < W) & (pos.1 > 0) { return Some((pos.0+1,pos.1-1)); } else { return None; }},
-            DOWN_RIGHT => { if (pos.0 < W) & (pos.1 < W) { return Some((pos.0+1,pos.1+1)); } else { return None; }},
-            DOWN_LEFT  => { if (pos.0 > 0) & (pos.1 < W) { return Some((pos.0-1,pos.1+1)); } else { return None; }},
-            UP_LEFT    => { if (pos.0 > 0) & (pos.1 > 0) { return Some((pos.0-1,pos.1-1)); } else { return None; }}
+            Up    => { if pos.1 > 0 { return Some((pos.0  ,pos.1-1)); } else { return None; }},
+            Right => { if pos.0 < w { return Some((pos.0+1,pos.1  )); } else { return None; }},
+            Down  => { if pos.1 < h { return Some((pos.0  ,pos.1+1)); } else { return None; }},
+            Left  => { if pos.0 > 0 { return Some((pos.0-1,pos.1  )); } else { return None; }},
+            UpRight   => { if (pos.0 < w) & (pos.1 > 0) { return Some((pos.0+1,pos.1-1)); } else { return None; }},
+            DownRight => { if (pos.0 < h) & (pos.1 < w) { return Some((pos.0+1,pos.1+1)); } else { return None; }},
+            DownLeft  => { if (pos.0 > 0) & (pos.1 < w) { return Some((pos.0-1,pos.1+1)); } else { return None; }},
+            UpLeft    => { if (pos.0 > 0) & (pos.1 > 0) { return Some((pos.0-1,pos.1-1)); } else { return None; }}
         }
     }
 
@@ -119,7 +119,7 @@ fn test_area() {
     assert_eq!(area.contains_signed(2,2), true);
     assert_eq!(area.contains_signed(2,3), false);
     assert_eq!(area.contains_signed(2,-1), false);
-    assert_eq!(area.step((2,2), LEFT), Some((1,2)));
+    assert_eq!(area.step((2,2), Left), Some((1,2)));
     assert_eq!(area.all_positions().collect::<Vec<Position>>(), vec![
         (0,0),(1,0),(2,0),
         (0,1),(1,1),(2,1),
