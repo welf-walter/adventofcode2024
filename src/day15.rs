@@ -1,9 +1,12 @@
 use crate::maps::Position;
 use crate::maps::Direction;
-use crate::maps::Direction::*;
 use crate::maps::FromChar;
 use crate::maps::PixelMap;
+
+#[cfg(test)]
 use crate::helper::split_input_sections;
+#[cfg(test)]
+use crate::maps::Direction::*;
 
 const VERBOSE:bool = true;
 
@@ -158,4 +161,21 @@ fn test_puzzle2()
     let puzzle = read_input(sections[0].split('\n'), &sections[1].replace("\n",""));
     let final_map = execute_moves(&puzzle);
     assert_eq!(get_gps(&final_map), 10092);
+}
+
+//////////////////////////////////////////
+/// Puzzle
+//////////////////////////////////////////
+
+use crate::helper::split_lines_sections;
+
+pub fn puzzle() {
+    let lines = crate::helper::read_file("input/day15.txt");
+
+    let sections = split_lines_sections::<2>(lines);
+    let puzzle = read_input(sections[0].iter().map(|line| line.as_str()), &sections[1].join(""));
+    let final_map = execute_moves(&puzzle);
+    let gps = get_gps(&final_map);
+
+    println!("Day 15, Part 1: GPS after moving is {}", gps);
 }
