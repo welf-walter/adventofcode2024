@@ -16,6 +16,18 @@ pub enum Direction {
     UpLeft,
 }
 
+impl FromChar for Direction {
+    fn from_char(c:char) -> Self {
+        match c {
+            '^' => Direction::Up,
+            '<' => Direction::Left,
+            '>' => Direction::Right,
+            'v' => Direction::Down,
+            _   => panic!("Unexpected direction character {}", c)
+        }
+     }
+}
+
 impl Direction {
     pub fn turn_right(&self) -> Direction {
         match self {
@@ -138,7 +150,7 @@ pub trait FromChar {
 #[derive(Clone)]
 pub struct PixelMap<E:FromChar> {
     pub area:Area,
-    pixels:Vec<Vec<E>>
+    pub pixels:Vec<Vec<E>>
 }
 
 impl<E:FromChar+Copy> PixelMap<E> {
