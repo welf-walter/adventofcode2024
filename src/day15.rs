@@ -114,14 +114,48 @@ fn input1() -> &'static str {
 }
 
 #[test]
-fn test_puzzle()
+fn test_puzzle1()
 {
-    let sections = split_input_sections::<2>(input1());
-    let puzzle1 = read_input(sections[0].split('\n'), &sections[1]);
+    let sections1 = split_input_sections::<2>(input1());
+    let puzzle1 = read_input(sections1[0].split('\n'), &sections1[1]);
     assert_eq!(puzzle1.map.pixels[2], vec![Wall, Wall, Robot, Space, Box, Space, Space, Wall]);
     assert_eq!(puzzle1.moves[0..7], [Left, Up, Up, Right, Right, Right, Down]);
     let start_pos = extract_start_pos(&mut puzzle1.map.clone());
     assert_eq!(start_pos, (2,2));
     let final_map = execute_moves(&puzzle1);
     assert_eq!(get_gps(&final_map), 2028);
+}
+
+#[cfg(test)]
+fn input2() -> &'static str {
+"##########
+#..O..O.O#
+#......O.#
+#.OO..O.O#
+#..O@..O.#
+#O#..O...#
+#O..O..O.#
+#.OO.O.OO#
+#....O...#
+##########
+
+<vv>^<v^>v>^vv^v>v<>v^v<v<^vv<<<^><<><>>v<vvv<>^v^>^<<<><<v<<<v^vv^v>^
+vvv<<^>^v^^><<>>><>^<<><^vv^^<>vvv<>><^^v>^>vv<>v<<<<v<^v>^<^^>>>^<v<v
+><>vv>v^v^<>><>>>><^^>vv>v<^^^>>v^v^<^^>v^^>v^<^v>v<>>v^v^<v>v^^<^^vv<
+<<v<^>>^^^^>>>v^<>vvv^><v<<<>^^^vv^<vvv>^>v<^^^^v<>^>vvvv><>>v^<<^^^^^
+^><^><>>><>^^<<^^v>>><^<v>^<vv>>v>>>^v><>^v><<<<v>>v<v<v>vvv>^<><<>^><
+^>><>^v<><^vvv<^^<><v<<<<<><^v<<<><<<^^<v<^^^><^>>^<v^><<<^>>^v<v^v<v^
+>^>>^v>vv>^<<^v<>><<><<v<<v><>v<^vv<<<>^^v^>^^>>><<^v>>v^v><^^>>^<>vv^
+<><^^>^^^<><vvvvv^v<v<<>^v<v>v<<^><<><<><<<^^<<<^<<>><<><^^^>^^<>^>v<>
+^^>vv<^v^v<vv>^<><v<^v>^^^>>>^^vvv^>vvv<>>>^<^>>>>>^<<^v>^vvv<>^<><<v>
+v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^"
+}
+
+#[test]
+fn test_puzzle2()
+{
+    let sections = split_input_sections::<2>(input2());
+    let puzzle = read_input(sections[0].split('\n'), &sections[1].replace("\n",""));
+    let final_map = execute_moves(&puzzle);
+    assert_eq!(get_gps(&final_map), 10092);
 }
