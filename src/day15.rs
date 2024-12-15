@@ -1,3 +1,4 @@
+use crate::maps::Position;
 use crate::maps::Direction;
 use crate::maps::Direction::*;
 use crate::maps::FromChar;
@@ -27,8 +28,10 @@ impl crate::maps::FromChar for MapElement {
     }
 }
 
+type Map = PixelMap<MapElement>;
+
 struct Puzzle {
-    map:PixelMap<MapElement>,
+    map:Map,
     moves:Vec<Direction>
 }
 
@@ -36,6 +39,23 @@ fn read_input<'a>(map_lines:impl Iterator<Item=&'a str>, directions_lines:&str) 
     let map = PixelMap::from_strings(map_lines);
     let moves = directions_lines.chars().map(|c| Direction::from_char(c)).collect();
     Puzzle { map, moves }
+}
+
+// extract robot start position and replace with Space
+fn extract_start_pos(map:&mut Map) -> Position {
+    for pos in map.area.all_positions() {
+        if map.at(pos) == Robot {
+            map.set_at(pos, Space);
+            return pos;
+        }
+    }
+    panic!("Could not find start position");
+}
+
+fn execute_moves(puzzle:&Puzzle) -> Map {
+    let mut map = puzzle.map.clone();
+    // ...
+    map
 }
 
 #[cfg(test)]
@@ -59,4 +79,6 @@ fn test_puzzle()
     let puzzle1 = read_input(sections[0].split('\n'), &sections[1]);
     assert_eq!(puzzle1.map.pixels[2], vec![Wall, Wall, Robot, Space, Box, Space, Space, Wall]);
     assert_eq!(puzzle1.moves[0..7], [Left, Up, Up, Right, Right, Right, Down]);
+    let start_pos = extract_start_pos(&mut puzzle1.map.clone());
+    assert_eq!(start_pos, (2,2));
 }

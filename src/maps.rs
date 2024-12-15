@@ -163,6 +163,10 @@ impl<E:FromChar+Copy> PixelMap<E> {
         self.pixels[position.1][position.0]
     }
 
+    pub fn set_at(&mut self, position:Position, value:E) {
+        self.pixels[position.1][position.0] = value;
+    }
+
     pub fn from_strings<'a>(lines:impl Iterator<Item=&'a str>) -> Self {
         let mut width = 0;
         let mut height = 0;
