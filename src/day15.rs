@@ -2,6 +2,7 @@ use crate::maps::Direction;
 use crate::maps::Direction::*;
 use crate::maps::FromChar;
 use crate::maps::PixelMap;
+use crate::helper::split_input_sections;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum MapElement {
@@ -35,19 +36,6 @@ fn read_input<'a>(map_lines:impl Iterator<Item=&'a str>, directions_lines:&str) 
     let map = PixelMap::from_strings(map_lines);
     let moves = directions_lines.chars().map(|c| Direction::from_char(c)).collect();
     Puzzle { map, moves }
-}
-
-// split a string at empty lines
-fn split_input_sections<const SECTION_COUNT:usize>(input:&str) -> [String;SECTION_COUNT] {
-    let mut parts = input.split("\n\n");
-    const EMPTY_STRING: std::string::String = String::new();
-    let mut sections:[String;SECTION_COUNT] = [EMPTY_STRING;SECTION_COUNT];
-    for i in 0..SECTION_COUNT {
-        let part = parts.next().unwrap();
-        sections[i] = String::from(part);
-    }
-    assert!(parts.next().is_none());
-    sections
 }
 
 #[cfg(test)]
