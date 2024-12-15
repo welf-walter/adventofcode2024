@@ -54,8 +54,35 @@ fn extract_start_pos(map:&mut Map) -> Position {
 
 fn execute_moves(puzzle:&Puzzle) -> Map {
     let mut map = puzzle.map.clone();
-    // ...
+    let mut current_pos = extract_start_pos(&mut map);
+    for direction in &puzzle.moves {
+        let next_pos = map.area.step(current_pos, *direction).unwrap();
+        match map.at(next_pos) {
+            Space => { current_pos = next_pos }
+            Wall  => { }
+            Box   => {
+                let behind_box_pos = map.area.step(next_pos, *direction).unwrap();
+                if map.at(behind_box_pos) == Space {
+                    // move box
+                    map.set_at(behind_box_pos, Box);
+                    map.set_at(next_pos, Space);
+                    current_pos = next_pos;
+                }
+            },
+            _ => unreachable!()
+        }
+    }
     map
+}
+
+fn get_gps(map:&Map) -> usize {
+    let mut gps = 0;
+    for pos in map.area.all_positions() {
+        if map.at(pos) == Box {
+            gps += pos.0 + pos.1 * 100;
+        }
+    }
+    gps
 }
 
 #[cfg(test)]
@@ -81,4 +108,6 @@ fn test_puzzle()
     assert_eq!(puzzle1.moves[0..7], [Left, Up, Up, Right, Right, Right, Down]);
     let start_pos = extract_start_pos(&mut puzzle1.map.clone());
     assert_eq!(start_pos, (2,2));
+    let final_map = execute_moves(&puzzle1);
+    assert_eq!(get_gps(&final_map), 2028);
 }
