@@ -5,6 +5,8 @@ use crate::maps::FromChar;
 use crate::maps::PixelMap;
 use crate::helper::split_input_sections;
 
+const VERBOSE:bool = true;
+
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum MapElement {
     Space,
@@ -58,15 +60,27 @@ fn execute_moves(puzzle:&Puzzle) -> Map {
     for direction in &puzzle.moves {
         let next_pos = map.area.step(current_pos, *direction).unwrap();
         match map.at(next_pos) {
-            Space => { current_pos = next_pos }
-            Wall  => { }
+            Space => {
+                if VERBOSE {println!("Move {:?} to {:?}", direction, next_pos);}
+                current_pos = next_pos;
+            }
+            Wall  => {
+                if VERBOSE {println!("Cannot move {:?}", direction);}
+            }
             Box   => {
-                let behind_box_pos = map.area.step(next_pos, *direction).unwrap();
-                if map.at(behind_box_pos) == Space {
+                // we can move multiple boxes
+                let mut behind_boxes_pos = next_pos;
+                while map.at(behind_boxes_pos) == Box {
+                    behind_boxes_pos = map.area.step(behind_boxes_pos, *direction).unwrap();
+                }
+                if map.at(behind_boxes_pos) == Space {
                     // move box
-                    map.set_at(behind_box_pos, Box);
+                    map.set_at(behind_boxes_pos, Box);
                     map.set_at(next_pos, Space);
                     current_pos = next_pos;
+                    if VERBOSE {println!("Move box {:?} to {:?}", direction, behind_boxes_pos);}
+                } else {
+                    if VERBOSE {println!("Cannot move box {:?}", direction);}
                 }
             },
             _ => unreachable!()
