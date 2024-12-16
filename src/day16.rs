@@ -98,29 +98,31 @@ impl Puzzle {
 
     // return None for "don't follow this path"
     fn get_cost_of_state(&mut self, state:State) -> Option<Cost> {
+        if VERBOSE { print!("At {:?}: ", state)}
         // ... todo
         if let Some(cached) = self.cache.get(&state) {
-            if VERBOSE { println!("Cached: {:?} -> {}", state, *cached)}
+            if VERBOSE { println!("Cached -> {}", *cached)}
             return Some(*cached);
         }
 
         // is this state already in inspection?
         if self.backlog.contains(&state) {
-            if VERBOSE { println!("At {:?} again -> skip", state);}
+            if VERBOSE { println!("again -> skip");}
             return None;
         }
 
         // recursion termination
         if self.map.at(state.0) == End {
-            if VERBOSE { println!("Terminated at {:?}", state);}
+            if VERBOSE { println!("Terminated");}
             return Some(0);
         }
 
         self.backlog.insert(state);
+        if VERBOSE { println!("Stacksize = {} ", self.backlog.len());}
         // first try to walk, because it is cheaper
         let mut options:Vec<(Action, Cost)> = Vec::new();
         for action in [Walk, TurnRight, TurnLeft] {
-            if VERBOSE { println!("At {:?} do {:?}", state, action);}
+            if VERBOSE { println!("  try to do {:?}", action);}
             if let Some(after) = self.execute_action(state, action) {
                 if let Some(after_cost) = self.get_cost_of_state(after) {
                     let cost = cost_of_action(action) + after_cost;
@@ -130,12 +132,12 @@ impl Puzzle {
             }
         }
         if options.is_empty() {
-            if VERBOSE { println!("  no option at {:?}", state)}
+            if VERBOSE { println!("  no option")}
             return None;
         }
         self.backlog.remove(&state);
         let best_option = options.iter().min_by_key(|(_action,cost)| cost).unwrap();
-        if VERBOSE { println!("At {:?} best option is to do {:?}", state, best_option.0)}
+        if VERBOSE { println!("At {:?} best option of {} is to do {:?}", state, options.len(), best_option.0)}
         let best_cost = best_option.1;
         self.cache.insert(state, best_cost);
         Some(best_cost)
@@ -170,7 +172,8 @@ fn test_puzzle1() {
 
     assert_eq!(puzzle.get_cost_of_state(((13,1),Right)), Some(0));
     assert_eq!(puzzle.get_cost_of_state(((12,1),Right)), Some(1));
-    assert_eq!(puzzle.get_cost_of_state(((11,1),Left)), Some(1002));
+    assert_eq!(puzzle.get_cost_of_state(((11,1),Up)), Some(1002));
+    assert_eq!(puzzle.get_cost_of_state(((11,1),Left)), Some(2002));
     assert_eq!(puzzle.get_cost_of_state(((12,1),Right)), Some(1));
     assert_eq!(puzzle.get_cost_of_state(((11,3),Right)), Some(4008));
 
