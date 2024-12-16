@@ -65,6 +65,30 @@ impl Puzzle {
         (self.map.find_first(Start).unwrap(), Right)
     }
 
+    fn execute_action(&self, before:State, action:Action) -> Option<State> {
+        match action {
+            TurnLeft => {
+                Some((before.0, before.1.turn_left()))
+            },
+            TurnRight => {
+                Some((before.0, before.1.turn_right()))
+            },
+            Walk => {
+                match self.map.area.step(before.0, before.1)
+                {
+                    Some(nextpos) => {
+                        if self.map.at(nextpos) == Wall {
+                            None
+                        } else {
+                            Some((nextpos, before.1))
+                        }
+                    },
+                    None => None
+                }
+            }
+        }
+    }
+
     fn get_cost_of_state(&mut self, state:State) -> Cost {
         // ... todo
         42
@@ -92,4 +116,8 @@ fn test_puzzle1() {
     let puzzle = Puzzle::read_input(input.split('\n'));
     let start_pos = puzzle.get_start_state();
     assert_eq!(start_pos, ((1, 13),Right));
+    assert_eq!(puzzle.execute_action(start_pos, Walk), Some(((2,13), Right)));
+    let r = puzzle.execute_action(start_pos, TurnRight).unwrap();
+    assert_eq!(r, ((1,13), Down));
+    assert_eq!(puzzle.execute_action(r, Walk), None);
 }
