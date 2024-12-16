@@ -91,7 +91,21 @@ impl Puzzle {
 
     fn get_cost_of_state(&mut self, state:State) -> Cost {
         // ... todo
-        42
+        if let Some(cached) = self.cache.get(&state) {
+            return *cached;
+        }
+        if self.map.at(state.0) == End {
+            return 0;
+        }
+        // first try to walk, because it is cheaper
+        let mut options:Vec<(Action, Cost)> = Vec::new();
+        for action in [Walk, TurnRight, TurnLeft] {
+            if let Some(after) = self.execute_action(state, Walk) {
+                let cost = cost_of_action(action) + self.get_cost_of_state(after);
+                options.push((action, cost));
+            }
+        }
+        options.iter().min_by_key(|(_action,cost)| cost).unwrap().1
     }
 }
 
@@ -113,11 +127,18 @@ fn test_puzzle1() {
 #.###.#.#.#.#.#
 #S..#.....#...#
 ###############";
-    let puzzle = Puzzle::read_input(input.split('\n'));
+    let mut puzzle = Puzzle::read_input(input.split('\n'));
     let start_pos = puzzle.get_start_state();
     assert_eq!(start_pos, ((1, 13),Right));
     assert_eq!(puzzle.execute_action(start_pos, Walk), Some(((2,13), Right)));
     let r = puzzle.execute_action(start_pos, TurnRight).unwrap();
     assert_eq!(r, ((1,13), Down));
     assert_eq!(puzzle.execute_action(r, Walk), None);
+
+    assert_eq!(puzzle.get_cost_of_state(((13,1),Right)), 0);
+    assert_eq!(puzzle.get_cost_of_state(((12,1),Right)), 1);
+    assert_eq!(puzzle.get_cost_of_state(((11,1),Left)), 1002);
+    assert_eq!(puzzle.get_cost_of_state(((12,1),Right)), 1);
+    assert_eq!(puzzle.get_cost_of_state(((11,3),Right)), 4008);
+
 }
