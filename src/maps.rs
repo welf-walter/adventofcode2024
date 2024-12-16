@@ -153,7 +153,7 @@ pub struct PixelMap<E:FromChar> {
     pub pixels:Vec<Vec<E>>
 }
 
-impl<E:FromChar+Copy> PixelMap<E> {
+impl<E:FromChar+Copy+PartialEq> PixelMap<E> {
     #[cfg(test)]
     pub fn width(&self) -> usize { self.area.width }
     #[cfg(test)]
@@ -165,6 +165,15 @@ impl<E:FromChar+Copy> PixelMap<E> {
 
     pub fn set_at(&mut self, position:Position, value:E) {
         self.pixels[position.1][position.0] = value;
+    }
+
+    pub fn find_first(&self, value:E) -> Option<Position> {
+        for pos in self.area.all_positions() {
+            if self.at(pos) == value {
+                return Some(pos);
+            }
+        }
+        None
     }
 
     pub fn from_strings<'a>(lines:impl Iterator<Item=&'a str>) -> Self {

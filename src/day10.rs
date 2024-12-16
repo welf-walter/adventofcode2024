@@ -4,7 +4,7 @@ use crate::maps::PixelMap;
 use crate::maps::Position;
 use crate::maps::Direction;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 struct Height {
     value:u32
 }
