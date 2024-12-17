@@ -142,6 +142,21 @@ impl Puzzle {
         self.cache.insert(state, best_cost);
         Some(best_cost)
     }
+
+    #[cfg(test)]
+    fn print_state(&self) {
+        for y in 0..self.map.area.height {
+            for x in 0..self.map.area.width {
+                let state = ((x,y),Right);
+                if let Some(cost) = self.cache.get(&state) {
+                    print!("{:5} ", cost);
+                } else {
+                    print!(" ???  ");
+                }
+            }
+            println!("");
+        }
+    }
 }
 
 #[test]
@@ -171,7 +186,11 @@ fn test_puzzle1() {
     assert_eq!(puzzle.execute_action(r, Walk), None);
 
     assert_eq!(puzzle.get_cost_of_state(((13,1),Right)), Some(0));
-    assert_eq!(puzzle.get_cost_of_state(((12,1),Right)), Some(1));
+    assert_eq!(puzzle.get_cost_of_state(((13,1),Up)), Some(0));
+    let cost3 = puzzle.get_cost_of_state(((12,1),Right));
+    puzzle.print_state();
+    assert_eq!(cost3, Some(1));
+    assert_eq!(puzzle.get_cost_of_state(((12,1),Up)), Some(1001));
     assert_eq!(puzzle.get_cost_of_state(((11,1),Up)), Some(1002));
     assert_eq!(puzzle.get_cost_of_state(((11,1),Left)), Some(2002));
     assert_eq!(puzzle.get_cost_of_state(((12,1),Right)), Some(1));
