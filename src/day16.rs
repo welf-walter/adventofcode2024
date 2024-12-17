@@ -119,6 +119,7 @@ impl Puzzle {
                     // recursion termination
                     if self.map.at(after.0) == End {
                         if VERBOSE { println!("Terminated");}
+                        if VERBOSE { self.print_cache(cache);}
                         return cost_this_way;
                     }
 
@@ -140,12 +141,17 @@ impl Puzzle {
         panic!("Did not find any path to the end");
     }
 
-/*    #[cfg(test)]
-    fn print_state(&self) {
+    #[cfg(test)]
+    fn print_cache(&self, cache:HashMap<State,Cost>) {
         for y in 0..self.map.area.height {
             for x in 0..self.map.area.width {
-                let state = ((x,y),Right);
-                if let Some(cost) = self.cache.get(&state) {
+                let min_cost =
+                    [Right, Down, Left, Up].iter()
+                    .map(|&direction| cache.get(&((x,y),direction)))
+                    .filter(|option| option.is_some())
+                    .map(|option| option.unwrap())
+                    .min();
+                if let Some(cost) = min_cost {
                     print!("{:5} ", cost);
                 } else {
                     print!(" ???  ");
@@ -153,7 +159,7 @@ impl Puzzle {
             }
             println!("");
         }
-    }*/
+    }
 }
 
 #[test]
@@ -174,7 +180,7 @@ fn test_puzzle1() {
 #.###.#.#.#.#.#
 #S..#.....#...#
 ###############";
-    let mut puzzle = Puzzle::read_input(input.split('\n'));
+    let puzzle = Puzzle::read_input(input.split('\n'));
     let start_pos = puzzle.get_start_state();
     assert_eq!(start_pos, ((1, 13),Right));
     assert_eq!(puzzle.execute_action(start_pos, Walk), Some(((2,13), Right)));
@@ -192,5 +198,34 @@ fn test_puzzle1() {
     assert_eq!(puzzle.get_cost_of_state(((11,1),Left)), 2002);
     assert_eq!(puzzle.get_cost_of_state(((12,1),Right)), 1);
     assert_eq!(puzzle.get_cost_of_state(((11,3),Right)), 4008);
+
+    assert_eq!(puzzle.get_cost_of_state(puzzle.get_start_state()), 7036+99999);
+
+}
+
+#[test]
+fn test_puzzle2() {
+    let input=
+"#################
+#...#...#...#..E#
+#.#.#.#.#.#.#.#.#
+#.#.#.#...#...#.#
+#.#.#.#.###.#.#.#
+#...#.#.#.....#.#
+#.#.#.#.#.#####.#
+#.#...#.#.#.....#
+#.#.#####.#.###.#
+#.#.#.......#...#
+#.#.###.#####.###
+#.#.#...#.....#.#
+#.#.#.#####.###.#
+#.#.#.........#.#
+#.#.#.#########.#
+#S#.............#
+#################";
+    let puzzle = Puzzle::read_input(input.split('\n'));
+
+    assert_eq!(puzzle.get_cost_of_state(((13,1),Right)), 0);
+    assert_eq!(puzzle.get_cost_of_state(puzzle.get_start_state()), 11048 + 9999);
 
 }
