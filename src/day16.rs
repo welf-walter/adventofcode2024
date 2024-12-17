@@ -2,7 +2,7 @@ use crate::maps::Position;
 use crate::maps::Direction;
 use Direction::*;
 
-const VERBOSE:bool = true;
+const VERBOSE:bool = false;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum MapElement {
@@ -141,7 +141,6 @@ impl Puzzle {
         panic!("Did not find any path to the end");
     }
 
-    #[cfg(test)]
     fn print_cache(&self, cache:HashMap<State,Cost>) {
         for y in 0..self.map.area.height {
             for x in 0..self.map.area.width {
@@ -228,4 +227,17 @@ fn test_puzzle2() {
     assert_eq!(puzzle.get_cost_of_state(((15,1),Right)), 0);
     assert_eq!(puzzle.get_cost_of_state(puzzle.get_start_state()), 11048);
 
+}
+
+//////////////////////////////////////////
+/// Puzzle
+//////////////////////////////////////////
+
+pub fn puzzle() {
+    let lines = crate::helper::read_file("input/day16.txt");
+
+    let puzzle = Puzzle::read_input(lines.iter().map(|line| line.as_str()));
+    let costs = puzzle.get_cost_of_state(puzzle.get_start_state());
+
+    println!("Day 16, Part 1: Lowest score to move from Start to End is {}", costs);
 }
