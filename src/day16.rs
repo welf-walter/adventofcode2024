@@ -199,7 +199,7 @@ fn test_puzzle1() {
     assert_eq!(puzzle.get_cost_of_state(((12,1),Right)), 1);
     assert_eq!(puzzle.get_cost_of_state(((11,3),Right)), 4008);
 
-    assert_eq!(puzzle.get_cost_of_state(puzzle.get_start_state()), 7036+99999);
+    assert_eq!(puzzle.get_cost_of_state(puzzle.get_start_state()), 7036);
 
 }
 
@@ -225,7 +225,7 @@ fn test_puzzle2() {
 #################";
     let puzzle = Puzzle::read_input(input.split('\n'));
 
-    assert_eq!(puzzle.get_cost_of_state(((13,1),Right)), 0);
-    assert_eq!(puzzle.get_cost_of_state(puzzle.get_start_state()), 11048 + 9999);
+    assert_eq!(puzzle.get_cost_of_state(((15,1),Right)), 0);
+    assert_eq!(puzzle.get_cost_of_state(puzzle.get_start_state()), 11048);
 
 }
