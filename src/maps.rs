@@ -41,7 +41,7 @@ impl Direction {
             UpLeft    => UpRight
         }
     }
-    #[cfg(test)]
+
     pub fn turn_left(&self) -> Direction {
         match self {
             Up    => Left,

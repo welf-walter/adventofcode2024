@@ -50,21 +50,14 @@ fn cost_of_action(action:Action) -> Cost {
 type State = (Position,Direction);
 
 use std::collections::HashMap;
-use std::collections::HashSet;
 struct Puzzle {
-    map:Map,
-    // already evaluated
-    cache:HashMap<State,Cost>,
-    // currently in evaluation
-    backlog:HashSet<State>
+    map:Map
 }
 
 impl Puzzle {
     fn read_input<'a>(map_lines:impl Iterator<Item=&'a str>) -> Puzzle {
         Puzzle {
-            map:Map::from_strings(map_lines),
-            cache:HashMap::new(),
-            backlog:HashSet::new()
+            map:Map::from_strings(map_lines)
         }
     }
 
@@ -97,53 +90,57 @@ impl Puzzle {
     }
 
     // return None for "don't follow this path"
-    fn get_cost_of_state(&mut self, state:State) -> Option<Cost> {
-        if VERBOSE { print!("At {:?}: ", state)}
-        // ... todo
-        if let Some(cached) = self.cache.get(&state) {
-            if VERBOSE { println!("Cached -> {}", *cached)}
-            return Some(*cached);
+    fn get_cost_of_state(&self, start_state:State) -> Cost {
+        let mut backlog:Vec<State> = Vec::new();
+        let mut cache:HashMap<State,Cost> = HashMap::new();
+
+        cache.insert(start_state, 0);
+        backlog.push(start_state);
+
+        // recursion termination at start point
+        if self.map.at(start_state.0) == End {
+            if VERBOSE { println!("Terminated at start");}
+            return 0;
         }
 
-        // is this state already in inspection?
-        if self.backlog.contains(&state) {
-            if VERBOSE { println!("again -> skip");}
-            return None;
-        }
+        while backlog.len() > 0 {
+            // extract element with minimum cost
+            let min_cost = backlog.iter().map(|state| *cache.get(state).unwrap()).min().unwrap();
+            let min_index = backlog.iter().position(|state| *cache.get(state).unwrap() == min_cost).unwrap();
+            let state = backlog.swap_remove(min_index);
+            let current_cost = min_cost;
+            if VERBOSE { println!("Handle {:?} with cost = {}", state, current_cost);}
 
-        // recursion termination
-        if self.map.at(state.0) == End {
-            if VERBOSE { println!("Terminated");}
-            return Some(0);
-        }
+            for action in [Walk, TurnRight, TurnLeft] {
+                if VERBOSE { println!("  try to do {:?}", action);}
+                if let Some(after) = self.execute_action(state, action) {
+                    let cost_this_way = cost_of_action(action) + current_cost;
 
-        self.backlog.insert(state);
-        if VERBOSE { println!("Stacksize = {} ", self.backlog.len());}
-        // first try to walk, because it is cheaper
-        let mut options:Vec<(Action, Cost)> = Vec::new();
-        for action in [Walk, TurnRight, TurnLeft] {
-            if VERBOSE { println!("  try to do {:?}", action);}
-            if let Some(after) = self.execute_action(state, action) {
-                if let Some(after_cost) = self.get_cost_of_state(after) {
-                    let cost = cost_of_action(action) + after_cost;
-                    if VERBOSE { println!("At {:?} do {:?} -> {}", state, action, cost)}
-                    options.push((action, cost));
+                    // recursion termination
+                    if self.map.at(after.0) == End {
+                        if VERBOSE { println!("Terminated");}
+                        return cost_this_way;
+                    }
+
+                    if let Some(&best_cost_up_to_now) = cache.get(&after) {
+                        if cost_this_way < best_cost_up_to_now {
+                            cache.insert(after, cost_this_way);
+                            if VERBOSE { println!("  better cost for {:?}: {} < {}", after, cost_this_way, best_cost_up_to_now)}
+                            backlog.push(after);
+                        }
+                    } else {
+                        cache.insert(after, cost_this_way);
+                        if VERBOSE { println!("  cost for {:?}: {}", after, cost_this_way)}
+                        backlog.push(after);
+                    }
                 }
             }
         }
-        if options.is_empty() {
-            if VERBOSE { println!("  no option")}
-            return None;
-        }
-        self.backlog.remove(&state);
-        let best_option = options.iter().min_by_key(|(_action,cost)| cost).unwrap();
-        if VERBOSE { println!("At {:?} best option of {} is to do {:?}", state, options.len(), best_option.0)}
-        let best_cost = best_option.1;
-        self.cache.insert(state, best_cost);
-        Some(best_cost)
+
+        panic!("Did not find any path to the end");
     }
 
-    #[cfg(test)]
+/*    #[cfg(test)]
     fn print_state(&self) {
         for y in 0..self.map.area.height {
             for x in 0..self.map.area.width {
@@ -156,7 +153,7 @@ impl Puzzle {
             }
             println!("");
         }
-    }
+    }*/
 }
 
 #[test]
@@ -185,15 +182,15 @@ fn test_puzzle1() {
     assert_eq!(r, ((1,13), Down));
     assert_eq!(puzzle.execute_action(r, Walk), None);
 
-    assert_eq!(puzzle.get_cost_of_state(((13,1),Right)), Some(0));
-    assert_eq!(puzzle.get_cost_of_state(((13,1),Up)), Some(0));
+    assert_eq!(puzzle.get_cost_of_state(((13,1),Right)), 0);
+    assert_eq!(puzzle.get_cost_of_state(((13,1),Up)), 0);
     let cost3 = puzzle.get_cost_of_state(((12,1),Right));
-    puzzle.print_state();
-    assert_eq!(cost3, Some(1));
-    assert_eq!(puzzle.get_cost_of_state(((12,1),Up)), Some(1001));
-    assert_eq!(puzzle.get_cost_of_state(((11,1),Up)), Some(1002));
-    assert_eq!(puzzle.get_cost_of_state(((11,1),Left)), Some(2002));
-    assert_eq!(puzzle.get_cost_of_state(((12,1),Right)), Some(1));
-    assert_eq!(puzzle.get_cost_of_state(((11,3),Right)), Some(4008));
+ //   puzzle.print_state();
+    assert_eq!(cost3, 1);
+    assert_eq!(puzzle.get_cost_of_state(((12,1),Up)), 1001);
+    assert_eq!(puzzle.get_cost_of_state(((11,1),Up)), 1002);
+    assert_eq!(puzzle.get_cost_of_state(((11,1),Left)), 2002);
+    assert_eq!(puzzle.get_cost_of_state(((12,1),Right)), 1);
+    assert_eq!(puzzle.get_cost_of_state(((11,3),Right)), 4008);
 
 }
