@@ -49,11 +49,16 @@ type State = (Position, CheatsAllowed);
 // a path is a set of actions from Start to End
 type Path = Vec<Action>;
 
+fn cost_of_path(path:&Path) -> Cost {
+    path.iter().map(|&action| cost_of_action(action)).sum()
+}
+
 use std::collections::HashMap;
 use std::collections::HashSet;
 struct Puzzle {
     map:Map,
-    paths:Vec<Path>,
+    path_without_cheating:Option<Path>,
+    paths_with_cheating:Vec<Path>,
     states_handled:HashSet<State>
 }
 
@@ -61,13 +66,25 @@ impl Puzzle {
     fn read_input<'a>(map_lines:impl Iterator<Item=&'a str>) -> Puzzle {
         Puzzle {
             map:Map::from_strings(map_lines),
-            paths:Vec::new(),
+            path_without_cheating:None,
+            paths_with_cheating:Vec::new(),
             states_handled:HashSet::new()
         }
     }
 
     fn continue_path(&mut self, current_state:State, path_to_now:Path) {
         self.states_handled.insert(current_state);
+
+        if self.map.at(current_state.0) == End {
+            if current_state.1 > 0 {
+                assert!(self.path_without_cheating.is_none());
+                self.path_without_cheating = Some(path_to_now);
+            } else {
+                self.paths_with_cheating.push(path_to_now);
+            }
+            return;
+        }
+
         for action in all_actions() {
             let next = self.execute_action(current_state, action);
             if next.is_none() { continue; }
@@ -131,7 +148,8 @@ fn test_puzzle1() {
 #.#.#.#.#.#.###
 #...#...#...###
 ###############";
-    let puzzle = Puzzle::read_input(input.split('\n'));
+    let mut puzzle = Puzzle::read_input(input.split('\n'));
+    puzzle.create_all_paths();
     let start_pos = puzzle.get_start_state();
     assert_eq!(start_pos, ((1, 3), 1));
     assert_eq!(puzzle.execute_action(start_pos, (Up,false)), Some(((1,2), 1)));
@@ -139,6 +157,10 @@ fn test_puzzle1() {
     assert_eq!(puzzle.execute_action(start_pos, (Right,true)), Some(((3,3), 0)));
     assert_eq!(puzzle.execute_action(start_pos, (Left,false)), None);
     assert_eq!(puzzle.execute_action(start_pos, (Left,true)), None);
+
+    assert!(puzzle.path_without_cheating.is_some());
+    assert_eq!(cost_of_path(&puzzle.path_without_cheating.unwrap()), 84);
+
 
 }
 
