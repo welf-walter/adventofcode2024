@@ -59,8 +59,7 @@ use std::collections::HashSet;
 struct Puzzle {
     map:Map,
     path_without_cheating:Option<Path>,
-    paths_with_cheating:Vec<Path>,
-    states_handled:HashSet<State>
+    paths_with_cheating:Vec<Path>
 }
 
 impl Puzzle {
@@ -68,14 +67,15 @@ impl Puzzle {
         Puzzle {
             map:Map::from_strings(map_lines),
             path_without_cheating:None,
-            paths_with_cheating:Vec::new(),
-            states_handled:HashSet::new()
+            paths_with_cheating:Vec::new()
         }
     }
 
-    fn continue_path(&mut self, current_state:State, path_to_now:Path) {
+    fn continue_path(&mut self, current_state:State, path_to_now:Path, been_there_to_now:&HashSet<Position>) {
         if VERBOSE { println!("At ({},{}), {} cheats left", current_state.0.0, current_state.0.1, current_state.1);}
-        self.states_handled.insert(current_state);
+        let mut been_there = been_there_to_now.clone();
+        assert!(!been_there.contains(&current_state.0));
+        been_there.insert(current_state.0);
 
         if self.map.at(current_state.0) == End {
             if current_state.1 > 0 {
@@ -94,7 +94,7 @@ impl Puzzle {
             let next = self.execute_action(current_state, action);
             if next.is_none() { continue; }
             let next = next.unwrap();
-            if self.states_handled.contains(&next) {
+            if been_there.contains(&next.0) {
                 if VERBOSE { println!("  Been there. Done that.");}
                 continue;
             }
@@ -102,15 +102,18 @@ impl Puzzle {
             new_path.push(action);
             let level = new_path.len();
             if VERBOSE { println!("  Recurse at level {}", level);}
-            self.continue_path(next, new_path);
+            self.continue_path(next, new_path, &been_there);
             if VERBOSE { println!("  Back from level {} on ({},{}), {} cheats left", level, current_state.0.0, current_state.0.1, current_state.1);}
         }
+
+        if VERBOSE { println!("  Done with ({},{}), {} cheats left", current_state.0.0, current_state.0.1, current_state.1);}
+
     }
 
     fn create_all_paths(&mut self) {
         let start_state = self.get_start_state();
         let path_to_now = Vec::new();
-        self.continue_path(start_state, path_to_now);
+        self.continue_path(start_state, path_to_now, &HashSet::new());
     }
 
     fn get_cheating_path_savings(&self) -> Vec<Cost> {
@@ -129,6 +132,8 @@ impl Puzzle {
             let after1 = self.map.area.step(before.0, action.0);
             if after1.is_none() { return None; }
             let after1 = after1.unwrap();
+            // if there is no wall we could have done this without cheating
+            if self.map.at(after1) != Wall { return None; }
             let after2 = self.map.area.step(after1, action.0);
             if after2.is_none() { return None; }
             let after2 = after2.unwrap();
