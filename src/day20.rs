@@ -2,6 +2,8 @@ use crate::maps::Position;
 use crate::maps::Direction;
 use Direction::*;
 
+const VERBOSE:bool = true;
+
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum MapElement {
     Space,
@@ -53,7 +55,6 @@ fn cost_of_path(path:&Path) -> Cost {
     path.iter().map(|&action| cost_of_action(action)).sum()
 }
 
-use std::collections::HashMap;
 use std::collections::HashSet;
 struct Puzzle {
     map:Map,
@@ -73,26 +74,36 @@ impl Puzzle {
     }
 
     fn continue_path(&mut self, current_state:State, path_to_now:Path) {
+        if VERBOSE { println!("At ({},{}), {} cheats left", current_state.0.0, current_state.0.1, current_state.1);}
         self.states_handled.insert(current_state);
 
         if self.map.at(current_state.0) == End {
             if current_state.1 > 0 {
                 assert!(self.path_without_cheating.is_none());
+                if VERBOSE { println!("  Finished without cheating, cost = {}", cost_of_path(&path_to_now));}
                 self.path_without_cheating = Some(path_to_now);
             } else {
+                if VERBOSE { println!("  Finished with cheating, cost = {}", cost_of_path(&path_to_now));}
                 self.paths_with_cheating.push(path_to_now);
             }
             return;
         }
 
         for action in all_actions() {
+            if VERBOSE { println!("  Try to do {:?}", action);}
             let next = self.execute_action(current_state, action);
             if next.is_none() { continue; }
             let next = next.unwrap();
-            if self.states_handled.contains(&next) { continue; }
+            if self.states_handled.contains(&next) {
+                if VERBOSE { println!("  Been there. Done that.");}
+                continue;
+            }
             let mut new_path = path_to_now.clone();
             new_path.push(action);
+            let level = new_path.len();
+            if VERBOSE { println!("  Recurse at level {}", level);}
             self.continue_path(next, new_path);
+            if VERBOSE { println!("  Back from level {} on ({},{}), {} cheats left", level, current_state.0.0, current_state.0.1, current_state.1);}
         }
     }
 
@@ -165,6 +176,7 @@ fn test_puzzle1() {
 
     assert!(puzzle.path_without_cheating.is_some());
     assert_eq!(cost_of_path(puzzle.path_without_cheating.as_ref().unwrap()), 84);
+    assert_eq!(puzzle.paths_with_cheating.len(), 14+14+2+4+2+3+5);
 
     let mut path_costs = puzzle.get_cheating_path_savings();
     path_costs.sort();
