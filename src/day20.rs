@@ -102,6 +102,11 @@ impl Puzzle {
         self.continue_path(start_state, path_to_now);
     }
 
+    fn get_cheating_path_savings(&self) -> Vec<Cost> {
+        let original_cost = cost_of_path(self.path_without_cheating.as_ref().unwrap());
+        self.paths_with_cheating.iter().map(|path| original_cost - cost_of_path(path)).collect::<Vec<Cost>>()
+    }
+
     fn get_start_state(&self) -> State {
         (self.map.find_first(Start).unwrap(), 1)
     }
@@ -159,8 +164,19 @@ fn test_puzzle1() {
     assert_eq!(puzzle.execute_action(start_pos, (Left,true)), None);
 
     assert!(puzzle.path_without_cheating.is_some());
-    assert_eq!(cost_of_path(&puzzle.path_without_cheating.unwrap()), 84);
+    assert_eq!(cost_of_path(puzzle.path_without_cheating.as_ref().unwrap()), 84);
 
+    let mut path_costs = puzzle.get_cheating_path_savings();
+    path_costs.sort();
+    assert_eq!(path_costs, vec![
+        2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+        4,4,4,4,4,4,4,4,4,4,4,4,4,4,
+        6,6,
+        8,8,8,8,
+        10,10,
+        12,12,12,
+        20, 36, 38, 40, 64
+    ]);
 
 }
 
