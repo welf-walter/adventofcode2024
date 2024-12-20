@@ -71,11 +71,8 @@ impl Puzzle {
         }
     }
 
-    fn continue_path(&mut self, current_state:State, path_to_now:Path, been_there_to_now:&HashSet<Position>) {
+    fn continue_path(&mut self, current_state:State, path_to_now:Path, been_there:&mut HashSet<Position>) {
         if VERBOSE { println!("At ({},{}), {} cheats left", current_state.0.0, current_state.0.1, current_state.1);}
-        let mut been_there = been_there_to_now.clone();
-        assert!(!been_there.contains(&current_state.0));
-        been_there.insert(current_state.0);
 
         if self.map.at(current_state.0) == End {
             if current_state.1 > 0 {
@@ -88,6 +85,9 @@ impl Puzzle {
             }
             return;
         }
+
+        assert!(!been_there.contains(&current_state.0));
+        been_there.insert(current_state.0);
 
         for action in all_actions() {
             if VERBOSE { println!("  Try to do {:?}", action);}
@@ -102,9 +102,12 @@ impl Puzzle {
             new_path.push(action);
             let level = new_path.len();
             if VERBOSE { println!("  Recurse at level {}", level);}
-            self.continue_path(next, new_path, &been_there);
+            self.continue_path(next, new_path, been_there);
             if VERBOSE { println!("  Back from level {} on ({},{}), {} cheats left", level, current_state.0.0, current_state.0.1, current_state.1);}
         }
+
+        assert!(been_there.contains(&current_state.0));
+        been_there.remove(&current_state.0);
 
         if VERBOSE { println!("  Done with ({},{}), {} cheats left", current_state.0.0, current_state.0.1, current_state.1);}
 
@@ -113,7 +116,8 @@ impl Puzzle {
     fn create_all_paths(&mut self) {
         let start_state = self.get_start_state();
         let path_to_now = Vec::new();
-        self.continue_path(start_state, path_to_now, &HashSet::new());
+        let mut been_there = HashSet::new();
+        self.continue_path(start_state, path_to_now, &mut been_there);
     }
 
     fn get_cheating_path_savings(&self) -> Vec<Cost> {
