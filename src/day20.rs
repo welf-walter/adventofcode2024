@@ -2,7 +2,7 @@ use crate::maps::Position;
 use crate::maps::Direction;
 use Direction::*;
 
-const VERBOSE:bool = false;
+const VERBOSE:bool = true;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum MapElement {
@@ -71,17 +71,17 @@ impl Puzzle {
         }
     }
 
-    fn continue_path(&mut self, current_state:State, path_to_now:Path, been_there:&mut HashSet<Position>) {
+    fn continue_path(&mut self, current_state:State, path_to_now:&mut Path, been_there:&mut HashSet<Position>) {
         if VERBOSE { println!("At ({},{}), {} cheats left", current_state.0.0, current_state.0.1, current_state.1);}
 
         if self.map.at(current_state.0) == End {
             if current_state.1 > 0 {
                 assert!(self.path_without_cheating.is_none());
-                if VERBOSE { println!("  Finished without cheating, cost = {}", cost_of_path(&path_to_now));}
-                self.path_without_cheating = Some(path_to_now);
+                if VERBOSE { println!("  Finished without cheating, cost = {}", cost_of_path(path_to_now));}
+                self.path_without_cheating = Some(path_to_now.clone());
             } else {
-                if VERBOSE { println!("  Finished with cheating, cost = {}", cost_of_path(&path_to_now));}
-                self.paths_with_cheating.push(path_to_now);
+                if VERBOSE { println!("  Finished with cheating, cost = {}", cost_of_path(path_to_now));}
+                self.paths_with_cheating.push(path_to_now.clone());
             }
             return;
         }
@@ -98,12 +98,13 @@ impl Puzzle {
                 if VERBOSE { println!("  Been there. Done that.");}
                 continue;
             }
-            let mut new_path = path_to_now.clone();
-            new_path.push(action);
-            let level = new_path.len();
+            path_to_now.push(action);
+            let level = path_to_now.len();
             if VERBOSE { println!("  Recurse at level {}", level);}
-            self.continue_path(next, new_path, been_there);
+            self.continue_path(next, path_to_now, been_there);
             if VERBOSE { println!("  Back from level {} on ({},{}), {} cheats left", level, current_state.0.0, current_state.0.1, current_state.1);}
+            let a = path_to_now.pop();
+            assert_eq!(a.unwrap(), action);
         }
 
         assert!(been_there.contains(&current_state.0));
@@ -115,9 +116,9 @@ impl Puzzle {
 
     fn create_all_paths(&mut self) {
         let start_state = self.get_start_state();
-        let path_to_now = Vec::new();
+        let mut path_to_now = Vec::new();
         let mut been_there = HashSet::new();
-        self.continue_path(start_state, path_to_now, &mut been_there);
+        self.continue_path(start_state, & mut path_to_now, &mut been_there);
     }
 
     fn get_cheating_path_savings(&self) -> Vec<Cost> {
