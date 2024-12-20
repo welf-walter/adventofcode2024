@@ -2,7 +2,7 @@ use crate::maps::Position;
 use crate::maps::Direction;
 use Direction::*;
 
-const VERBOSE:bool = true;
+const VERBOSE:bool = false;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum MapElement {
@@ -197,3 +197,18 @@ fn test_puzzle1() {
 
 }
 
+//////////////////////////////////////////
+/// Puzzle
+//////////////////////////////////////////
+
+pub fn puzzle() {
+    let lines = crate::helper::read_file("input/day20.txt");
+
+    let mut puzzle = Puzzle::read_input(lines.iter().map(|line| line.as_str()));
+    puzzle.create_all_paths();
+    let path_costs = puzzle.get_cheating_path_savings();
+    // why "&&saving"?
+    let cheat_count = path_costs.iter().filter(|&&saving| saving >= 100).count();
+
+    println!("Day 20, Part 1: Number of cheats saving at least 100 picoseconds is {}", cheat_count);
+}
