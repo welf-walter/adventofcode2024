@@ -1,4 +1,5 @@
 mod maps;
+mod optimize;
 mod helper;
 
 mod day1;
