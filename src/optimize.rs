@@ -1,7 +1,11 @@
+type Cost = u32;
 
+pub trait ActionTrait:Sized {
+    fn cost(&self) -> Cost;
+}
 pub trait Problem {
     type State:std::fmt::Debug + PartialEq;
-    type Action:Sized;
+    type Action:ActionTrait;
     fn all_actions() -> &'static [Self::Action];
     // what happens if an action is executed on before state?
     // return None if action is invalid
@@ -12,6 +16,8 @@ pub trait Problem {
 mod test {
 
 use crate::optimize::Problem;
+
+use super::ActionTrait;
 
 #[derive(Debug, PartialEq)]
 struct TestState {
@@ -24,9 +30,13 @@ enum TestAction {
     Increment,
     Decrement
 }
+
+impl ActionTrait for TestAction {
+    fn cost(&self) -> super::Cost { 1 }
+}
+
 struct TestProblem {
 
-    
 }
 
 impl Problem for TestProblem {
@@ -55,6 +65,7 @@ fn test_actions() {
     assert_eq!(problem.execute_action(TestState{value:5}, TestAction::Double), Some(TestState{value:10}));
     assert_eq!(problem.execute_action(TestState{value:5}, TestAction::Increment), Some(TestState{value:6}));
     assert_eq!(problem.execute_action(TestState{value:0}, TestAction::Decrement), None);
+    assert_eq!(TestAction::Decrement.cost(), 1);
 }
 
 }
