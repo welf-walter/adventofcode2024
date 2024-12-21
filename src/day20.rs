@@ -1,8 +1,10 @@
 use crate::maps::Position;
 use crate::maps::Direction;
+use crate::optimize::get_cost_of_state;
+use crate::optimize::Problem;
 use Direction::*;
 
-const VERBOSE:bool = true;
+const VERBOSE:bool = false;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum MapElement {
@@ -29,49 +31,114 @@ impl crate::maps::FromChar for MapElement {
 use crate::maps::PixelMap;
 type Map = PixelMap<MapElement>;
 
-type Action = (Direction,/* cheating: */ bool);
 
-fn all_actions() -> [Action;8] {
-    [
-        (Up, false), (Right, false), (Down, false), (Left, false),
-        (Up, true),  (Right, true),  (Down, true),  (Left, true)
-    ]
+
+use crate::optimize::ActionTrait;
+
+impl ActionTrait for Direction {
+    fn all_actions() -> &'static [Self] {
+        &[
+            Up, Right, Down, Left
+        ]
+    }
+
+    fn cost(self) -> crate::optimize::Cost {
+        1
+    }
 }
 
 type Cost = u32;
 
-fn cost_of_action(action:Action) -> Cost {
-    if action.1 { 2 } else { 1 }
-}
+const COST_OF_CHEAT : Cost = 2;
 
-type CheatsAllowed = u32;
-
-type State = (Position, CheatsAllowed);
-
-// a path is a set of actions from Start to End
-type Path = Vec<Action>;
-
-fn cost_of_path(path:&Path) -> Cost {
-    path.iter().map(|&action| cost_of_action(action)).sum()
-}
-
-use std::collections::HashSet;
-struct Puzzle {
+struct ShortestPathProblem {
     map:Map,
-    path_without_cheating:Option<Path>,
-    paths_with_cheating:Vec<Path>
+    start:Position,
+    end:Position
+}
+
+impl Problem for ShortestPathProblem {
+
+    type State = Position;
+    type Action = Direction;
+
+    fn is_end_state(&self, state:&Self::State) -> bool {
+        *state == self.end
+    }
+
+    // none means action cannot be executed
+    fn execute_action(&self, before:Position, action:Direction) -> Option<Position> {
+        let after = self.map.area.step(before, action);
+        if after.is_none() { return None; }
+        let after = after.unwrap();
+        if self.map.at(after) == Wall { return None; }
+        return Some(after);
+    }
+
 }
 
 impl Puzzle {
-    fn read_input<'a>(map_lines:impl Iterator<Item=&'a str>) -> Puzzle {
+
+    fn execute_cheat(&self, before:Position, action:Direction) -> Option<Position> {
+        if self.map.at(before) == Wall { return None; }
+        let after1 = self.map.area.step(before, action);
+        if after1.is_none() { return None; }
+        let after1 = after1.unwrap();
+        // if there is no wall we could have done this without cheating
+        if self.map.at(after1) != Wall { return None; }
+        let after2 = self.map.area.step(after1, action);
+        if after2.is_none() { return None; }
+        let after2 = after2.unwrap();
+        if self.map.at(after2) == Wall { return None; }
+        return Some(after2);
+    }
+
+}
+
+fn cost_of_shortest_path(map:&Map, start:Position, end:Position) -> Cost {
+    let problem = ShortestPathProblem{map:map.clone(), start, end};
+    get_cost_of_state(&problem, problem.start)
+}
+
+struct Puzzle {
+    // todo: we could reference an existing map
+    map:Map,
+    cost_of_path_without_cheating:Cost  // not really required!
+}
+
+impl Puzzle {
+    fn from<'a>(map_lines:impl Iterator<Item=&'a str>) -> Puzzle {
+        let map = Map::from_strings(map_lines);
+        let cost_of_path_without_cheating = cost_of_shortest_path(&map, map.find_first(Start).unwrap(), map.find_first(End).unwrap());
         Puzzle {
-            map:Map::from_strings(map_lines),
-            path_without_cheating:None,
-            paths_with_cheating:Vec::new()
+            map,
+            cost_of_path_without_cheating
         }
     }
 
-    fn continue_path(&mut self, current_state:State, path_to_now:&mut Path, been_there:&mut HashSet<Position>) {
+    fn get_all_cheats(&self) -> Vec<(Position, Position)> {
+        let mut cheats:Vec<(Position, Position)> = Vec::new();
+        for start_state in self.map.area.all_positions() {
+            // only iterate through two direction because the cheat is indirectional
+            for direction in [Right, Down] {
+                let after = self.execute_cheat(start_state, direction);
+                if let Some(end_state) = after {
+                    if VERBOSE { println!("  Cheat from ({},{}) to ({}, {})", start_state.0, start_state.1, end_state.0, end_state.1 );}
+                    cheats.push((start_state, end_state));
+                }
+            }
+        }
+        cheats
+    }
+
+    fn get_savings_of_cheats(&self, cheats:&Vec<(Position, Position)>) -> Vec<Cost> {
+        cheats.iter().map(
+            |cheat|
+            cost_of_shortest_path(&self.map, cheat.0, cheat.1) - COST_OF_CHEAT
+        ).collect()
+    }
+/*
+    fn continue_path(&mut self, current_state:Position, path_to_now:&mut Path, been_there:&mut HashSet<Position>) {
         if VERBOSE { println!("At ({},{}), {} cheats left", current_state.0.0, current_state.0.1, current_state.1);}
 
         if self.map.at(current_state.0) == End {
@@ -125,36 +192,13 @@ impl Puzzle {
         let original_cost = cost_of_path(self.path_without_cheating.as_ref().unwrap());
         self.paths_with_cheating.iter().map(|path| original_cost - cost_of_path(path)).collect::<Vec<Cost>>()
     }
+*/
 
-    fn get_start_state(&self) -> State {
-        (self.map.find_first(Start).unwrap(), 1)
-    }
-
-    // none means action cannot be executed
-    fn execute_action(&self, before:State, action:Action) -> Option<State> {
-        if action.1 {
-            if before.1 == 0 { return None; }
-            let after1 = self.map.area.step(before.0, action.0);
-            if after1.is_none() { return None; }
-            let after1 = after1.unwrap();
-            // if there is no wall we could have done this without cheating
-            if self.map.at(after1) != Wall { return None; }
-            let after2 = self.map.area.step(after1, action.0);
-            if after2.is_none() { return None; }
-            let after2 = after2.unwrap();
-            if self.map.at(after2) == Wall { return None; }
-            return Some((after2, before.1-1));
-        } else {
-            let after = self.map.area.step(before.0, action.0);
-            if after.is_none() { return None; }
-            let after = after.unwrap();
-            if self.map.at(after) == Wall { return None; }
-            return Some((after, before.1));
-        }
-    }
 
 
 }
+
+
 
 #[test]
 fn test_puzzle1() {
@@ -174,23 +218,26 @@ fn test_puzzle1() {
 #.#.#.#.#.#.###
 #...#...#...###
 ###############";
-    let mut puzzle = Puzzle::read_input(input.split('\n'));
-    puzzle.create_all_paths();
-    let start_pos = puzzle.get_start_state();
-    assert_eq!(start_pos, ((1, 3), 1));
-    assert_eq!(puzzle.execute_action(start_pos, (Up,false)), Some(((1,2), 1)));
-    assert_eq!(puzzle.execute_action(start_pos, (Right,false)), None);
-    assert_eq!(puzzle.execute_action(start_pos, (Right,true)), Some(((3,3), 0)));
-    assert_eq!(puzzle.execute_action(start_pos, (Left,false)), None);
-    assert_eq!(puzzle.execute_action(start_pos, (Left,true)), None);
+    let puzzle = Puzzle::from(input.split('\n'));
+    let start_pos = puzzle.map.find_first(Start).unwrap();
+    let problem = ShortestPathProblem{
+        map: puzzle.map.clone(),
+        start: start_pos,
+        end: puzzle.map.find_first(End).unwrap()
+    };
+    assert_eq!(problem.execute_action(start_pos, Up), Some((1,2)));
+    assert_eq!(problem.execute_action(start_pos, Right), None);
+    assert_eq!(problem.execute_action(start_pos, Left), None);
+    assert_eq!(puzzle.execute_cheat(start_pos, Right), Some((3,3)));
+    assert_eq!(puzzle.execute_cheat(start_pos, Left), None);
 
-    assert!(puzzle.path_without_cheating.is_some());
-    assert_eq!(cost_of_path(puzzle.path_without_cheating.as_ref().unwrap()), 84);
-    assert_eq!(puzzle.paths_with_cheating.len(), 14+14+2+4+2+3+5);
+    assert_eq!(puzzle.cost_of_path_without_cheating, 84);
+    let all_cheats = puzzle.get_all_cheats();
+    assert_eq!(all_cheats.len(), 14+14+2+4+2+3+5);
 
-    let mut path_costs = puzzle.get_cheating_path_savings();
-    path_costs.sort();
-    assert_eq!(path_costs, vec![
+    let mut path_savings = puzzle.get_savings_of_cheats(&all_cheats);
+    path_savings.sort();
+    assert_eq!(path_savings, vec![
         2,2,2,2,2,2,2,2,2,2,2,2,2,2,
         4,4,4,4,4,4,4,4,4,4,4,4,4,4,
         6,6,
@@ -209,11 +256,12 @@ fn test_puzzle1() {
 pub fn puzzle() {
     let lines = crate::helper::read_file("input/day20.txt");
 
-    let mut puzzle = Puzzle::read_input(lines.iter().map(|line| line.as_str()));
-    puzzle.create_all_paths();
-    let path_costs = puzzle.get_cheating_path_savings();
+    let puzzle = Puzzle::from(lines.iter().map(|line| line.as_str()));
+    if VERBOSE { println!("Day 20: Full path is {} picoseconds", puzzle.cost_of_path_without_cheating)}
+    let all_cheats = puzzle.get_all_cheats();
+    let path_savings = puzzle.get_savings_of_cheats(&all_cheats);
     // why "&&saving"?
-    let cheat_count = path_costs.iter().filter(|&&saving| saving >= 100).count();
+    let cheat_count = path_savings.iter().filter(|&&saving| saving >= 100).count();
 
     println!("Day 20, Part 1: Number of cheats saving at least 100 picoseconds is {}", cheat_count);
 }
