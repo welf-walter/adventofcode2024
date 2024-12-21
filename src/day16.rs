@@ -2,8 +2,6 @@ use crate::maps::Position;
 use crate::maps::Direction;
 use Direction::*;
 
-const VERBOSE:bool = false;
-
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum MapElement {
     Space,
@@ -40,6 +38,7 @@ use Action::*;
 use crate::optimize::Cost;
 use crate::optimize::ActionTrait;
 use crate::optimize::Problem;
+use crate::optimize::get_cost_of_state;
 
 impl ActionTrait for Action {
     fn all_actions() -> &'static [Self] {
@@ -57,7 +56,6 @@ impl ActionTrait for Action {
 
 type State = (Position,Direction);
 
-use std::collections::HashMap;
 struct Puzzle {
     map:Map
 }
@@ -78,6 +76,10 @@ impl Problem for Puzzle {
 
     type Action = Action;
     type State = State;
+
+    fn is_end_state(&self, state:&State) -> bool {
+        self.map.at(state.0) == End
+    }
 
     fn execute_action(&self, before:State, action:Action) -> Option<State> {
         match action {
@@ -102,61 +104,8 @@ impl Problem for Puzzle {
             }
         }
     }
-}
 
-impl Puzzle {
-    // return None for "don't follow this path"
-    fn get_cost_of_state(&self, start_state:State) -> Cost {
-        let mut backlog:Vec<State> = Vec::new();
-        let mut cache:HashMap<State,Cost> = HashMap::new();
-
-        cache.insert(start_state, 0);
-        backlog.push(start_state);
-
-        // recursion termination at start point
-        if self.map.at(start_state.0) == End {
-            if VERBOSE { println!("Terminated at start");}
-            return 0;
-        }
-
-        while backlog.len() > 0 {
-            // extract element with minimum cost
-            let min_cost = backlog.iter().map(|state| *cache.get(state).unwrap()).min().unwrap();
-            let min_index = backlog.iter().position(|state| *cache.get(state).unwrap() == min_cost).unwrap();
-            let state = backlog.swap_remove(min_index);
-            let current_cost = min_cost;
-            if VERBOSE { println!("Handle {:?} with cost = {}", state, current_cost);}
-
-            for &action in Action::all_actions() {
-                if VERBOSE { println!("  try to do {:?}", action);}
-                if let Some(after) = self.execute_action(state, action) {
-                    let cost_this_way = action.cost() + current_cost;
-
-                    // recursion termination
-                    if self.map.at(after.0) == End {
-                        if VERBOSE { println!("Terminated");}
-                        if VERBOSE { self.print_cache(cache);}
-                        return cost_this_way;
-                    }
-
-                    if let Some(&best_cost_up_to_now) = cache.get(&after) {
-                        if cost_this_way < best_cost_up_to_now {
-                            cache.insert(after, cost_this_way);
-                            if VERBOSE { println!("  better cost for {:?}: {} < {}", after, cost_this_way, best_cost_up_to_now)}
-                            backlog.push(after);
-                        }
-                    } else {
-                        cache.insert(after, cost_this_way);
-                        if VERBOSE { println!("  cost for {:?}: {}", after, cost_this_way)}
-                        backlog.push(after);
-                    }
-                }
-            }
-        }
-
-        panic!("Did not find any path to the end");
-    }
-
+    /*
     fn print_cache(&self, cache:HashMap<State,Cost>) {
         for y in 0..self.map.area.height {
             for x in 0..self.map.area.width {
@@ -175,6 +124,8 @@ impl Puzzle {
             println!("");
         }
     }
+    */
+
 }
 
 #[test]
@@ -203,18 +154,18 @@ fn test_puzzle1() {
     assert_eq!(r, ((1,13), Down));
     assert_eq!(puzzle.execute_action(r, Walk), None);
 
-    assert_eq!(puzzle.get_cost_of_state(((13,1),Right)), 0);
-    assert_eq!(puzzle.get_cost_of_state(((13,1),Up)), 0);
-    let cost3 = puzzle.get_cost_of_state(((12,1),Right));
+    assert_eq!(get_cost_of_state(&puzzle, ((13,1),Right)), 0);
+    assert_eq!(get_cost_of_state(&puzzle, ((13,1),Up)), 0);
+    let cost3 = get_cost_of_state(&puzzle, ((12,1),Right));
  //   puzzle.print_state();
     assert_eq!(cost3, 1);
-    assert_eq!(puzzle.get_cost_of_state(((12,1),Up)), 1001);
-    assert_eq!(puzzle.get_cost_of_state(((11,1),Up)), 1002);
-    assert_eq!(puzzle.get_cost_of_state(((11,1),Left)), 2002);
-    assert_eq!(puzzle.get_cost_of_state(((12,1),Right)), 1);
-    assert_eq!(puzzle.get_cost_of_state(((11,3),Right)), 4008);
+    assert_eq!(get_cost_of_state(&puzzle, ((12,1),Up)), 1001);
+    assert_eq!(get_cost_of_state(&puzzle, ((11,1),Up)), 1002);
+    assert_eq!(get_cost_of_state(&puzzle, ((11,1),Left)), 2002);
+    assert_eq!(get_cost_of_state(&puzzle, ((12,1),Right)), 1);
+    assert_eq!(get_cost_of_state(&puzzle, ((11,3),Right)), 4008);
 
-    assert_eq!(puzzle.get_cost_of_state(puzzle.get_start_state()), 7036);
+    assert_eq!(get_cost_of_state(&puzzle, puzzle.get_start_state()), 7036);
 
 }
 
@@ -240,8 +191,8 @@ fn test_puzzle2() {
 #################";
     let puzzle = Puzzle::read_input(input.split('\n'));
 
-    assert_eq!(puzzle.get_cost_of_state(((15,1),Right)), 0);
-    assert_eq!(puzzle.get_cost_of_state(puzzle.get_start_state()), 11048);
+    assert_eq!(get_cost_of_state(&puzzle, ((15,1),Right)), 0);
+    assert_eq!(get_cost_of_state(&puzzle, puzzle.get_start_state()), 11048);
 
 }
 
@@ -253,7 +204,7 @@ pub fn puzzle() {
     let lines = crate::helper::read_file("input/day16.txt");
 
     let puzzle = Puzzle::read_input(lines.iter().map(|line| line.as_str()));
-    let costs = puzzle.get_cost_of_state(puzzle.get_start_state());
+    let costs = get_cost_of_state(&puzzle, puzzle.get_start_state());
 
     println!("Day 16, Part 1: Lowest score to move from Start to End is {}", costs);
 }
