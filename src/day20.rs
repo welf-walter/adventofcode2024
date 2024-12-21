@@ -49,6 +49,8 @@ impl ActionTrait for Direction {
 
 type Cost = u32;
 
+const COST_OF_CHEAT : Cost = 2;
+
 struct ShortestPathProblem {
     map:Map,
     start:Position,
@@ -75,9 +77,10 @@ impl Problem for ShortestPathProblem {
 
 }
 
-impl ShortestPathProblem {
+impl Puzzle {
 
     fn execute_cheat(&self, before:Position, action:Direction) -> Option<Position> {
+        if self.map.at(before) == Wall { return None; }
         let after1 = self.map.area.step(before, action);
         if after1.is_none() { return None; }
         let after1 = after1.unwrap();
@@ -94,14 +97,13 @@ impl ShortestPathProblem {
 
 fn cost_of_shortest_path(map:&Map, start:Position, end:Position) -> Cost {
     let problem = ShortestPathProblem{map:map.clone(), start, end};
-    get_cost_of_state(&problem, start)
+    get_cost_of_state(&problem, problem.start)
 }
 
 struct Puzzle {
     // todo: we could reference an existing map
     map:Map,
-    cost_of_path_without_cheating:Cost,
-    cost_of_paths_with_cheating:Vec<Cost>
+    cost_of_path_without_cheating:Cost
 }
 
 impl Puzzle {
@@ -110,9 +112,30 @@ impl Puzzle {
         let cost_of_path_without_cheating = cost_of_shortest_path(&map, map.find_first(Start).unwrap(), map.find_first(End).unwrap());
         Puzzle {
             map,
-            cost_of_path_without_cheating,
-            cost_of_paths_with_cheating:Vec::new()
+            cost_of_path_without_cheating
         }
+    }
+
+    fn get_all_cheats(&self) -> Vec<(Position, Position)> {
+        let mut cheats:Vec<(Position, Position)> = Vec::new();
+        for start_state in self.map.area.all_positions() {
+            // only iterate through two direction because the cheat is indirectional
+            for direction in [Right, Down] {
+                let after = self.execute_cheat(start_state, direction);
+                if let Some(end_state) = after {
+                    if VERBOSE { println!("  Cheat from ({},{}) to ({}, {})", start_state.0, start_state.1, end_state.0, end_state.1 );}
+                    cheats.push((start_state, end_state));
+                }
+            }
+        }
+        cheats
+    }
+
+    fn get_savings_of_cheats(&self, cheats:&Vec<(Position, Position)>) -> Vec<Cost> {
+        cheats.iter().map(
+            |cheat|
+            cost_of_shortest_path(&self.map, cheat.0, cheat.1) - COST_OF_CHEAT
+        ).collect()
     }
 /*
     fn continue_path(&mut self, current_state:Position, path_to_now:&mut Path, been_there:&mut HashSet<Position>) {
@@ -205,18 +228,16 @@ fn test_puzzle1() {
     assert_eq!(problem.execute_action(start_pos, Up), Some((1,2)));
     assert_eq!(problem.execute_action(start_pos, Right), None);
     assert_eq!(problem.execute_action(start_pos, Left), None);
-    assert_eq!(problem.execute_cheat(start_pos, Right), Some((3,3)));
-    assert_eq!(problem.execute_cheat(start_pos, Left), None);
+    assert_eq!(puzzle.execute_cheat(start_pos, Right), Some((3,3)));
+    assert_eq!(puzzle.execute_cheat(start_pos, Left), None);
 
     assert_eq!(puzzle.cost_of_path_without_cheating, 84);
-    /*
-    assert!(puzzle.path_without_cheating.is_some());
-    assert_eq!(cost_of_path(puzzle.path_without_cheating.as_ref().unwrap()), 84);
-    assert_eq!(puzzle.paths_with_cheating.len(), 14+14+2+4+2+3+5);
+    let all_cheats = puzzle.get_all_cheats();
+    assert_eq!(all_cheats.len(), 14+14+2+4+2+3+5);
 
-    let mut path_costs = puzzle.get_cheating_path_savings();
-    path_costs.sort();
-    assert_eq!(path_costs, vec![
+    let mut path_savings = puzzle.get_savings_of_cheats(&all_cheats);
+    path_savings.sort();
+    assert_eq!(path_savings, vec![
         2,2,2,2,2,2,2,2,2,2,2,2,2,2,
         4,4,4,4,4,4,4,4,4,4,4,4,4,4,
         6,6,
@@ -225,7 +246,6 @@ fn test_puzzle1() {
         12,12,12,
         20, 36, 38, 40, 64
     ]);
-    */
 
 }
 
@@ -236,7 +256,7 @@ fn test_puzzle1() {
 pub fn puzzle() {
     let lines = crate::helper::read_file("input/day20.txt");
 
-    let mut puzzle = Puzzle::from(lines.iter().map(|line| line.as_str()));
+    let puzzle = Puzzle::from(lines.iter().map(|line| line.as_str()));
     //puzzle.create_all_paths();
     //let path_costs = puzzle.get_cheating_path_savings();
     // why "&&saving"?
