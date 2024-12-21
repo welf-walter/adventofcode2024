@@ -37,13 +37,21 @@ enum Action {
 }
 use Action::*;
 
-type Cost = u32;
+use crate::optimize::Cost;
+use crate::optimize::ActionTrait;
+use crate::optimize::Problem;
 
-fn cost_of_action(action:Action) -> Cost {
-    match action {
-        Walk      => 1,
-        TurnLeft  => 1000,
-        TurnRight => 1000
+impl ActionTrait for Action {
+    fn all_actions() -> &'static [Self] {
+        &[Walk, TurnRight, TurnLeft]
+     }
+    
+    fn cost(self) -> Cost {
+        match self {
+            Walk      => 1,
+            TurnLeft  => 1000,
+            TurnRight => 1000
+        }
     }
 }
 
@@ -64,6 +72,12 @@ impl Puzzle {
     fn get_start_state(&self) -> State {
         (self.map.find_first(Start).unwrap(), Right)
     }
+}
+
+impl Problem for Puzzle {
+
+    type Action = Action;
+    type State = State;
 
     fn execute_action(&self, before:State, action:Action) -> Option<State> {
         match action {
@@ -88,7 +102,9 @@ impl Puzzle {
             }
         }
     }
+}
 
+impl Puzzle {
     // return None for "don't follow this path"
     fn get_cost_of_state(&self, start_state:State) -> Cost {
         let mut backlog:Vec<State> = Vec::new();
@@ -111,10 +127,10 @@ impl Puzzle {
             let current_cost = min_cost;
             if VERBOSE { println!("Handle {:?} with cost = {}", state, current_cost);}
 
-            for action in [Walk, TurnRight, TurnLeft] {
+            for &action in Action::all_actions() {
                 if VERBOSE { println!("  try to do {:?}", action);}
                 if let Some(after) = self.execute_action(state, action) {
-                    let cost_this_way = cost_of_action(action) + current_cost;
+                    let cost_this_way = action.cost() + current_cost;
 
                     // recursion termination
                     if self.map.at(after.0) == End {
