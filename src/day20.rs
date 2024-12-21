@@ -4,7 +4,7 @@ use crate::optimize::get_cost_of_state;
 use crate::optimize::Problem;
 use Direction::*;
 
-const VERBOSE:bool = true;
+const VERBOSE:bool = false;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum MapElement {
@@ -103,7 +103,7 @@ fn cost_of_shortest_path(map:&Map, start:Position, end:Position) -> Cost {
 struct Puzzle {
     // todo: we could reference an existing map
     map:Map,
-    cost_of_path_without_cheating:Cost
+    cost_of_path_without_cheating:Cost  // not really required!
 }
 
 impl Puzzle {
@@ -257,10 +257,11 @@ pub fn puzzle() {
     let lines = crate::helper::read_file("input/day20.txt");
 
     let puzzle = Puzzle::from(lines.iter().map(|line| line.as_str()));
-    //puzzle.create_all_paths();
-    //let path_costs = puzzle.get_cheating_path_savings();
+    if VERBOSE { println!("Day 20: Full path is {} picoseconds", puzzle.cost_of_path_without_cheating)}
+    let all_cheats = puzzle.get_all_cheats();
+    let path_savings = puzzle.get_savings_of_cheats(&all_cheats);
     // why "&&saving"?
-    let cheat_count = 42;//path_costs.iter().filter(|&&saving| saving >= 100).count();
+    let cheat_count = path_savings.iter().filter(|&&saving| saving >= 100).count();
 
     println!("Day 20, Part 1: Number of cheats saving at least 100 picoseconds is {}", cheat_count);
 }
