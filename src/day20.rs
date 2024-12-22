@@ -139,14 +139,15 @@ impl Puzzle {
         let mut cheats:Vec<Cheat> = Vec::new();
         for start_state in self.map.area.all_positions() {
             if self.map.at(start_state) == Wall { continue; }
-            for length in 2..Self::CHEAT_MAX_LEN_PART_2 {
-                for dx in -(length as i32)+1..(length as i32) {
+            for length in 2..Self::CHEAT_MAX_LEN_PART_2+1 {
+                // for length 3 we want to have [(-3,0),(-2,1),(-1,2),(0,3),(1,2),(2,1)] - because (-3,0) == (3,0)
+                for dx in -(length as i32)..(length as i32) {
                     let dy = (length as i32) - dx.abs();
                     let end_state = self.map.area.position_add(start_state, dx, dy);
                     if end_state.is_none() { continue;}
                     let end_state = end_state.unwrap();
                     if self.map.at(end_state) == Wall { continue; }
-                    if VERBOSE { println!("  Cheat from ({},{}) to ({}, {})", start_state.0, start_state.1, end_state.0, end_state.1 );}
+                    if VERBOSE { println!("  Cheat from ({},{}) to ({}, {}) with length {}", start_state.0, start_state.1, end_state.0, end_state.1, length );}
                     cheats.push((start_state, end_state, length));
                 }
             }
@@ -154,11 +155,16 @@ impl Puzzle {
         cheats
     }
 
-    fn get_savings_of_cheats(&self, cheats:&Vec<Cheat>) -> Vec<Cost> {
+    fn get_savings_of_cheats(&self, cheats:&Vec<Cheat>, minimum_saving:Cost) -> Vec<Cost> {
         cheats.iter().map(
             |cheat|
-            cost_of_shortest_path(&self.map, cheat.0, cheat.1) - cheat.2
-        ).collect()
+            {
+                let saving = cost_of_shortest_path(&self.map, cheat.0, cheat.1) - cheat.2;
+                if VERBOSE { println!("  Cheat from ({},{}) to ({}, {}) with length {}: Saving = {}", cheat.0.0, cheat.0.1, cheat.1.0, cheat.1.1, cheat.2, saving );}
+                saving
+            }
+        ).filter(|&saving| saving >= minimum_saving)
+        .collect()
     }
 /*
     fn continue_path(&mut self, current_state:Position, path_to_now:&mut Path, been_there:&mut HashSet<Position>) {
@@ -259,9 +265,9 @@ fn test_puzzle1() {
     let all_cheats1 = puzzle.get_all_cheats_part1();
     assert_eq!(all_cheats1.len(), 14+14+2+4+2+3+5);
 
-    let mut path_savings = puzzle.get_savings_of_cheats(&all_cheats1);
-    path_savings.sort();
-    assert_eq!(path_savings, vec![
+    let mut path_savings1 = puzzle.get_savings_of_cheats(&all_cheats1, 0);
+    path_savings1.sort();
+    assert_eq!(path_savings1, vec![
         2,2,2,2,2,2,2,2,2,2,2,2,2,2,
         4,4,4,4,4,4,4,4,4,4,4,4,4,4,
         6,6,
@@ -271,8 +277,17 @@ fn test_puzzle1() {
         20, 36, 38, 40, 64
     ]);
 
+    let mut path_savings1b = puzzle.get_savings_of_cheats(&all_cheats1, 20);
+    path_savings1b.sort();
+    assert_eq!(path_savings1b, vec![
+        20, 36, 38, 40, 64
+    ]);
+
     let all_cheats2 = puzzle.get_all_cheats_part2();
     assert!(all_cheats2.len() > 32+31+29+39+25+23+20+19+12+14+12+22+4+3);
+
+    let path_savings2 = puzzle.get_savings_of_cheats(&all_cheats2, 50);
+    assert_eq!(path_savings2.len(), 32+31+29+39+25+23+20+19+12+14+12+22+4+3);
 
 }
 
@@ -286,9 +301,9 @@ pub fn puzzle() {
     let puzzle = Puzzle::from(lines.iter().map(|line| line.as_str()));
     if VERBOSE { println!("Day 20: Full path is {} picoseconds", puzzle.cost_of_path_without_cheating)}
     let all_cheats = puzzle.get_all_cheats_part1();
-    let path_savings = puzzle.get_savings_of_cheats(&all_cheats);
+    let path_savings = puzzle.get_savings_of_cheats(&all_cheats, 100);
     // why "&&saving"?
-    let cheat_count = path_savings.iter().filter(|&&saving| saving >= 100).count();
+    let cheat_count = path_savings.len();
 
     println!("Day 20, Part 1: Number of cheats saving at least 100 picoseconds is {}", cheat_count);
 }
