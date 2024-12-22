@@ -49,13 +49,13 @@ impl ActionTrait for Direction {
 
 type Cost = u32;
 
-struct ShortestPathProblem {
-    map:Map,
+struct ShortestPathProblem<'a> {
+    map:&'a Map,
     start:Position,
     end:Position
 }
 
-impl Problem for ShortestPathProblem {
+impl<'a> Problem for ShortestPathProblem<'a> {
 
     type State = Position;
     type Action = Direction;
@@ -94,7 +94,7 @@ impl Puzzle {
 }
 
 fn cost_of_shortest_path(map:&Map, start:Position, end:Position) -> Cost {
-    let problem = ShortestPathProblem{map:map.clone(), start, end};
+    let problem = ShortestPathProblem{map, start, end};
     get_cost_of_state(&problem, problem.start)
 }
 
@@ -250,7 +250,7 @@ fn test_puzzle1() {
     let puzzle = Puzzle::from(input.split('\n'));
     let start_pos = puzzle.map.find_first(Start).unwrap();
     let problem = ShortestPathProblem{
-        map: puzzle.map.clone(),
+        map: &puzzle.map,
         start: start_pos,
         end: puzzle.map.find_first(End).unwrap()
     };
