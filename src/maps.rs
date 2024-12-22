@@ -104,6 +104,17 @@ impl Area {
     pub fn contains_signed(&self, x:i32, y:i32) -> bool {
         x >= 0 && (x as usize) < self.width && y >= 0 && (y as usize) < self.height
     }
+
+    pub fn position_add(&self, pos:Position, delta_x:i32, delta_y:i32) -> Option<Position> {
+        let new_x:i32 = pos.0 as i32 + delta_x;
+        let new_y:i32 = pos.1 as i32 + delta_y;
+        if new_x < 0 || new_x >= self.width as i32 ||
+           new_y < 0 || new_y >= self.height as i32 {
+            return None;
+           }
+        Some((new_x as usize, new_y as usize))
+    }
+
     // return None if out of area
     pub fn step(&self, pos:Position, direction:Direction) -> Option<Position> {
         let w = self.width-1;
@@ -132,6 +143,8 @@ fn test_area() {
     assert_eq!(area.contains_signed(2,3), false);
     assert_eq!(area.contains_signed(2,-1), false);
     assert_eq!(area.step((2,2), Left), Some((1,2)));
+    assert_eq!(area.position_add((2,2), -1, -2), Some((1,0)));
+    assert_eq!(area.position_add((2,2),  1, -2), None);
     assert_eq!(area.all_positions().collect::<Vec<Position>>(), vec![
         (0,0),(1,0),(2,0),
         (0,1),(1,1),(2,1),
