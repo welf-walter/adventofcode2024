@@ -4,6 +4,8 @@ use crate::optimize::get_cost_of_state;
 use crate::optimize::Problem;
 use Direction::*;
 
+use std::collections::HashMap;
+
 const VERBOSE:bool = false;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -101,6 +103,7 @@ fn cost_of_shortest_path(map:&Map, start:Position, end:Position) -> Cost {
 struct Puzzle {
     // todo: we could reference an existing map
     map:Map,
+    cost_map:HashMap<Position,Cost>,
     cost_of_path_without_cheating:Cost  // not really required!
 }
 
@@ -112,8 +115,18 @@ impl Puzzle {
         let cost_of_path_without_cheating = cost_of_shortest_path(&map, map.find_first(Start).unwrap(), map.find_first(End).unwrap());
         Puzzle {
             map,
+            cost_map:HashMap::new(),
             cost_of_path_without_cheating
         }
+    }
+
+    fn create_cost_map(&mut self) {
+        let end = self.map.find_first(End).unwrap();
+        for pos in self.map.area.all_positions() {
+            let cost = cost_of_shortest_path(&self.map, pos, end);
+            self.cost_map.insert(pos, cost);
+        }
+        assert_eq!(self.cost_of_path_without_cheating, *self.cost_map.get(&self.map.find_first(Start).unwrap()).unwrap());
     }
 
     fn get_all_cheats_part1(&self) -> Vec<Cheat> {
@@ -159,7 +172,11 @@ impl Puzzle {
         cheats.iter().map(
             |cheat|
             {
-                let saving = cost_of_shortest_path(&self.map, cheat.0, cheat.1) - cheat.2;
+                let cost_of_shortest_path =
+                    self.cost_map.get(&cheat.0).unwrap().abs_diff(
+                        *self.cost_map.get(&cheat.1).unwrap()
+                    );
+                let saving = cost_of_shortest_path - cheat.2;
                 if VERBOSE { println!("  Cheat from ({},{}) to ({}, {}) with length {}: Saving = {}", cheat.0.0, cheat.0.1, cheat.1.0, cheat.1.1, cheat.2, saving );}
                 saving
             }
@@ -189,7 +206,11 @@ fn test_puzzle1() {
 #.#.#.#.#.#.###
 #...#...#...###
 ###############";
-    let puzzle = Puzzle::from(input.split('\n'));
+    let puzzle = {
+        let mut p = Puzzle::from(input.split('\n'));
+        p.create_cost_map();
+        p
+    };
     let start_pos = puzzle.map.find_first(Start).unwrap();
     let problem = ShortestPathProblem{
         map: &puzzle.map,
@@ -240,8 +261,9 @@ fn test_puzzle1() {
 pub fn puzzle() {
     let lines = crate::helper::read_file("input/day20.txt");
 
-    let puzzle = Puzzle::from(lines.iter().map(|line| line.as_str()));
+    let mut puzzle = Puzzle::from(lines.iter().map(|line| line.as_str()));
     if VERBOSE { println!("Day 20: Full path is {} picoseconds", puzzle.cost_of_path_without_cheating)}
+    puzzle.create_cost_map();
     let all_cheats1 = puzzle.get_all_cheats_part1();
     println!("Number of cheats (length=2) is {}", all_cheats1.len());
     let path_savings1 = puzzle.get_savings_of_cheats(&all_cheats1, 100);
