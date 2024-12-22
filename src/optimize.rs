@@ -85,7 +85,8 @@ pub fn get_cost_of_state<P:Problem>(problem:&P, start_state:P::State) -> Cost wh
         }
     }
 
-    panic!("Did not find any path to the end");
+    if VERBOSE { println!("Did not find any path to the end from {:?}", start_state); }
+    u32::MAX
     }
 
 
