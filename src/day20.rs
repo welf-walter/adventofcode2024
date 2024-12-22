@@ -166,64 +166,6 @@ impl Puzzle {
         ).filter(|&saving| saving >= minimum_saving)
         .collect()
     }
-/*
-    fn continue_path(&mut self, current_state:Position, path_to_now:&mut Path, been_there:&mut HashSet<Position>) {
-        if VERBOSE { println!("At ({},{}), {} cheats left", current_state.0.0, current_state.0.1, current_state.1);}
-
-        if self.map.at(current_state.0) == End {
-            if current_state.1 > 0 {
-                assert!(self.path_without_cheating.is_none());
-                if VERBOSE { println!("  Finished without cheating, cost = {}", cost_of_path(path_to_now));}
-                self.path_without_cheating = Some(path_to_now.clone());
-            } else {
-                if VERBOSE { println!("  Finished with cheating, cost = {}", cost_of_path(path_to_now));}
-                self.paths_with_cheating.push(path_to_now.clone());
-            }
-            return;
-        }
-
-        assert!(!been_there.contains(&current_state.0));
-        been_there.insert(current_state.0);
-
-        for action in all_actions() {
-            if VERBOSE { println!("  Try to do {:?}", action);}
-            let next = self.execute_action(current_state, action);
-            if next.is_none() { continue; }
-            let next = next.unwrap();
-            if been_there.contains(&next.0) {
-                if VERBOSE { println!("  Been there. Done that.");}
-                continue;
-            }
-            path_to_now.push(action);
-            let level = path_to_now.len();
-            if VERBOSE { println!("  Recurse at level {}", level);}
-            self.continue_path(next, path_to_now, been_there);
-            if VERBOSE { println!("  Back from level {} on ({},{}), {} cheats left", level, current_state.0.0, current_state.0.1, current_state.1);}
-            let a = path_to_now.pop();
-            assert_eq!(a.unwrap(), action);
-        }
-
-        assert!(been_there.contains(&current_state.0));
-        been_there.remove(&current_state.0);
-
-        if VERBOSE { println!("  Done with ({},{}), {} cheats left", current_state.0.0, current_state.0.1, current_state.1);}
-
-    }
-
-    fn create_all_paths(&mut self) {
-        let start_state = self.get_start_state();
-        let mut path_to_now = Vec::new();
-        let mut been_there = HashSet::new();
-        self.continue_path(start_state, & mut path_to_now, &mut been_there);
-    }
-
-    fn get_cheating_path_savings(&self) -> Vec<Cost> {
-        let original_cost = cost_of_path(self.path_without_cheating.as_ref().unwrap());
-        self.paths_with_cheating.iter().map(|path| original_cost - cost_of_path(path)).collect::<Vec<Cost>>()
-    }
-*/
-
-
 
 }
 
