@@ -49,8 +49,6 @@ impl ActionTrait for Direction {
 
 type Cost = u32;
 
-const COST_OF_CHEAT : Cost = 2;
-
 struct ShortestPathProblem {
     map:Map,
     start:Position,
@@ -106,6 +104,8 @@ struct Puzzle {
     cost_of_path_without_cheating:Cost  // not really required!
 }
 
+type Cheat = (/*from:*/Position, /*to:*/Position, /*cost_for_cheat:*/Cost);
+
 impl Puzzle {
     fn from<'a>(map_lines:impl Iterator<Item=&'a str>) -> Puzzle {
         let map = Map::from_strings(map_lines);
@@ -116,25 +116,48 @@ impl Puzzle {
         }
     }
 
-    fn get_all_cheats(&self) -> Vec<(Position, Position)> {
-        let mut cheats:Vec<(Position, Position)> = Vec::new();
+    fn get_all_cheats_part1(&self) -> Vec<Cheat> {
+        const COST_OF_CHEAT : Cost = 2;
+
+        let mut cheats:Vec<Cheat> = Vec::new();
         for start_state in self.map.area.all_positions() {
             // only iterate through two direction because the cheat is indirectional
             for direction in [Right, Down] {
                 let after = self.execute_cheat(start_state, direction);
                 if let Some(end_state) = after {
                     if VERBOSE { println!("  Cheat from ({},{}) to ({}, {})", start_state.0, start_state.1, end_state.0, end_state.1 );}
-                    cheats.push((start_state, end_state));
+                    cheats.push((start_state, end_state, COST_OF_CHEAT));
                 }
             }
         }
         cheats
     }
 
-    fn get_savings_of_cheats(&self, cheats:&Vec<(Position, Position)>) -> Vec<Cost> {
+    const CHEAT_MAX_LEN_PART_2:u32 = 20;
+
+    fn get_all_cheats_part2(&self) -> Vec<Cheat> {
+        let mut cheats:Vec<Cheat> = Vec::new();
+        for start_state in self.map.area.all_positions() {
+            if self.map.at(start_state) == Wall { continue; }
+            for length in 2..Self::CHEAT_MAX_LEN_PART_2 {
+                for dx in -(length as i32)+1..(length as i32) {
+                    let dy = (length as i32) - dx.abs();
+                    let end_state = self.map.area.position_add(start_state, dx, dy);
+                    if end_state.is_none() { continue;}
+                    let end_state = end_state.unwrap();
+                    if self.map.at(end_state) == Wall { continue; }
+                    if VERBOSE { println!("  Cheat from ({},{}) to ({}, {})", start_state.0, start_state.1, end_state.0, end_state.1 );}
+                    cheats.push((start_state, end_state, length));
+                }
+            }
+        }
+        cheats
+    }
+
+    fn get_savings_of_cheats(&self, cheats:&Vec<Cheat>) -> Vec<Cost> {
         cheats.iter().map(
             |cheat|
-            cost_of_shortest_path(&self.map, cheat.0, cheat.1) - COST_OF_CHEAT
+            cost_of_shortest_path(&self.map, cheat.0, cheat.1) - cheat.2
         ).collect()
     }
 /*
@@ -232,10 +255,11 @@ fn test_puzzle1() {
     assert_eq!(puzzle.execute_cheat(start_pos, Left), None);
 
     assert_eq!(puzzle.cost_of_path_without_cheating, 84);
-    let all_cheats = puzzle.get_all_cheats();
-    assert_eq!(all_cheats.len(), 14+14+2+4+2+3+5);
 
-    let mut path_savings = puzzle.get_savings_of_cheats(&all_cheats);
+    let all_cheats1 = puzzle.get_all_cheats_part1();
+    assert_eq!(all_cheats1.len(), 14+14+2+4+2+3+5);
+
+    let mut path_savings = puzzle.get_savings_of_cheats(&all_cheats1);
     path_savings.sort();
     assert_eq!(path_savings, vec![
         2,2,2,2,2,2,2,2,2,2,2,2,2,2,
@@ -246,6 +270,9 @@ fn test_puzzle1() {
         12,12,12,
         20, 36, 38, 40, 64
     ]);
+
+    let all_cheats2 = puzzle.get_all_cheats_part2();
+    assert!(all_cheats2.len() > 32+31+29+39+25+23+20+19+12+14+12+22+4+3);
 
 }
 
@@ -258,7 +285,7 @@ pub fn puzzle() {
 
     let puzzle = Puzzle::from(lines.iter().map(|line| line.as_str()));
     if VERBOSE { println!("Day 20: Full path is {} picoseconds", puzzle.cost_of_path_without_cheating)}
-    let all_cheats = puzzle.get_all_cheats();
+    let all_cheats = puzzle.get_all_cheats_part1();
     let path_savings = puzzle.get_savings_of_cheats(&all_cheats);
     // why "&&saving"?
     let cheat_count = path_savings.iter().filter(|&&saving| saving >= 100).count();
