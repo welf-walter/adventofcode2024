@@ -300,10 +300,15 @@ pub fn puzzle() {
 
     let puzzle = Puzzle::from(lines.iter().map(|line| line.as_str()));
     if VERBOSE { println!("Day 20: Full path is {} picoseconds", puzzle.cost_of_path_without_cheating)}
-    let all_cheats = puzzle.get_all_cheats_part1();
-    let path_savings = puzzle.get_savings_of_cheats(&all_cheats, 100);
-    // why "&&saving"?
-    let cheat_count = path_savings.len();
+    let all_cheats1 = puzzle.get_all_cheats_part1();
+    println!("Number of cheats (length=2) is {}", all_cheats1.len());
+    let path_savings1 = puzzle.get_savings_of_cheats(&all_cheats1, 100);
 
-    println!("Day 20, Part 1: Number of cheats saving at least 100 picoseconds is {}", cheat_count);
+    println!("Day 20, Part 1: Number of cheats (length=2) saving at least 100 picoseconds is {}", path_savings1.len());
+
+    let all_cheats2 = puzzle.get_all_cheats_part2();
+    println!("Number of cheats (length<=20) is {}", all_cheats2.len());
+    let path_savings2 = puzzle.get_savings_of_cheats(&all_cheats2, 100);
+
+    println!("Day 20, Part 2: Number of cheats (length<=20) saving at least 100 picoseconds is {}", path_savings2.len());
 }
