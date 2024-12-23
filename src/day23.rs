@@ -75,15 +75,23 @@ fn normalize_set_of_three(set:SetOfThree) -> SetOfThree {
     (vec[0], vec[1], vec[2])
 }
 
+fn one_starts_with_t(set:&&SetOfThree) -> bool {
+    set.0.name[0] == 't' ||
+    set.1.name[0] == 't' ||
+    set.2.name[0] == 't'
+}
+
 #[test]
 fn test_normalize() {
     assert_eq!(normalize_set_of_three((c("ab"), c("cd"), c("ef"))), (c("ab"), c("cd"), c("ef")));
     assert_eq!(normalize_set_of_three((c("cd"), c("ab"), c("ef"))), (c("ab"), c("cd"), c("ef")));
     assert_eq!(normalize_set_of_three((c("ef"), c("ab"), c("cd"))), (c("ab"), c("cd"), c("ef")));
+    assert_eq!(one_starts_with_t(&&(c("ef"), c("ab"), c("cd"))), false);
+    assert_eq!(one_starts_with_t(&&(c("ef"), c("tb"), c("cd"))), true);
 }
 
 fn find_sets_of_three(network:&Network) -> Vec<SetOfThree> {
-    let mut sets : Vec<(Computer, Computer, Computer)> = Vec::new();
+    let mut sets : Vec<SetOfThree> = Vec::new();
     for &computer1 in &network.computers {
         let linked1 = network.links_from(computer1);
         for computer2 in linked1 {
@@ -168,6 +176,18 @@ fn test_example1() {
         (c("td"),c("wh"),c("yn")),
         (c("ub"),c("vc"),c("wq"))
     ]);
+
+    let sets_with_t:Vec<&SetOfThree> = sets.iter().filter(one_starts_with_t).collect();
+    assert_eq!(sets_with_t, vec![
+        &(c("co"),c("de"),c("ta")),
+        &(c("co"),c("ka"),c("ta")),
+        &(c("de"),c("ka"),c("ta")),
+        &(c("qp"),c("td"),c("wh")),
+        &(c("tb"),c("vc"),c("wq")),
+        &(c("tc"),c("td"),c("wh")),
+        &(c("td"),c("wh"),c("yn"))
+    ]);
+
 }
 
 //////////////////////////////////////////
