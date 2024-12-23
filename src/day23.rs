@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::collections::HashSet;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
@@ -110,6 +109,6 @@ fn test_example1() {
     let network = read_input(lines);
     let mut computers:Vec<String> = network.computers.iter().map(|computer| computer.to_string()).collect();
     computers.sort();
-    assert_eq!(network.computers = vec!["aq", "cg", "co", "de", "ka", "kh", "qp", "ta", "tb", "tc", "td", "ub", "vc", "wh", "wq", "yn" ]);
+    assert_eq!(computers, vec!["aq", "cg", "co", "de", "ka", "kh", "qp", "ta", "tb", "tc", "td", "ub", "vc", "wh", "wq", "yn" ]);
     assert_eq!(network.links_from(c("de")),vec![c("cg"), c("co"), c("ta"), c("ka")]);
 }
