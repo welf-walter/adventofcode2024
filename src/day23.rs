@@ -199,6 +199,10 @@ pub fn puzzle() {
     let network = read_input(lines.iter().map(|line| line.as_str()));
     let sets = find_sets_of_three(&network);
 
-    println!("Day 23, Part 1: There are {} sets of three computers", sets.len());
+    println!("Day 23: There are {} sets of three computers", sets.len());
+
+    let sets_with_t_count = sets.into_iter().filter(one_starts_with_t).count();
+
+    println!("Day 23, Part 1: There are {} sets of three computers where one starts with 't'", sets_with_t_count);
 
 }
