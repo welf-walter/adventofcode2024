@@ -169,3 +169,16 @@ fn test_example1() {
         (c("ub"),c("vc"),c("wq"))
     ]);
 }
+
+//////////////////////////////////////////
+/// Puzzle
+//////////////////////////////////////////
+
+pub fn puzzle() {
+    let lines = crate::helper::read_file("input/day23.txt");
+    let network = read_input(lines.iter().map(|line| line.as_str()));
+    let sets = find_sets_of_three(&network);
+
+    println!("Day 23, Part 1: There are {} sets of three computers", sets.len());
+
+}
