@@ -90,6 +90,8 @@ fn find_sets_of_three(network:&Network) -> Vec<SetOfThree> {
             let linked2 = network.links_from(computer2);
             for computer3 in linked2 {
                 if computer3 == computer1 { continue; }
+                let linked3 = network.links_from(computer3);
+                if linked3.iter().find(|&&linked_computer| linked_computer == computer1).is_none() { continue;}
                 let set = normalize_set_of_three((computer1,computer2,computer3));
                 sets.push(set);
             }
