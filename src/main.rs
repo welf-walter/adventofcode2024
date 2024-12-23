@@ -20,6 +20,7 @@ mod day15;
 mod day16;
 // ...
 mod day20;
+mod day23;
 
 const NUMBER_OF_DAYS : u32 = 20;
 
