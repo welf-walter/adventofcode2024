@@ -75,7 +75,7 @@ fn normalize_set_of_three(set:SetOfThree) -> SetOfThree {
     (vec[0], vec[1], vec[2])
 }
 
-fn one_starts_with_t(set:&&SetOfThree) -> bool {
+fn one_starts_with_t(set:&SetOfThree) -> bool {
     set.0.name[0] == 't' ||
     set.1.name[0] == 't' ||
     set.2.name[0] == 't'
@@ -177,15 +177,15 @@ fn test_example1() {
         (c("ub"),c("vc"),c("wq"))
     ]);
 
-    let sets_with_t:Vec<&SetOfThree> = sets.iter().filter(one_starts_with_t).collect();
+    let sets_with_t:Vec<SetOfThree> = sets.into_iter().filter(one_starts_with_t).collect();
     assert_eq!(sets_with_t, vec![
-        &(c("co"),c("de"),c("ta")),
-        &(c("co"),c("ka"),c("ta")),
-        &(c("de"),c("ka"),c("ta")),
-        &(c("qp"),c("td"),c("wh")),
-        &(c("tb"),c("vc"),c("wq")),
-        &(c("tc"),c("td"),c("wh")),
-        &(c("td"),c("wh"),c("yn"))
+        (c("co"),c("de"),c("ta")),
+        (c("co"),c("ka"),c("ta")),
+        (c("de"),c("ka"),c("ta")),
+        (c("qp"),c("td"),c("wh")),
+        (c("tb"),c("vc"),c("wq")),
+        (c("tc"),c("td"),c("wh")),
+        (c("td"),c("wh"),c("yn"))
     ]);
 
 }
