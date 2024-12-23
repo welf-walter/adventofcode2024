@@ -1,9 +1,15 @@
 use std::collections::HashSet;
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(PartialEq, PartialOrd, Eq, Ord, Hash, Clone, Copy)]
 struct Computer
 {
     name:[char;2]
+}
+
+impl std::fmt::Debug for Computer {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}{}", self.name[0], self.name[1])
+    }
 }
 
 impl Computer
@@ -61,6 +67,39 @@ fn read_input<'a>(lines:impl Iterator<Item=&'a str>) -> Network {
     Network { computers, links }
 }
 
+type SetOfThree = (Computer, Computer, Computer);
+
+fn normalize_set_of_three(set:SetOfThree) -> SetOfThree {
+    let mut vec = vec![set.0, set.1, set.2];
+    vec.sort_by(|a,b| a.to_string().cmp(&b.to_string()));
+    (vec[0], vec[1], vec[2])
+}
+
+#[test]
+fn test_normalize() {
+    assert_eq!(normalize_set_of_three((c("ab"), c("cd"), c("ef"))), (c("ab"), c("cd"), c("ef")));
+    assert_eq!(normalize_set_of_three((c("cd"), c("ab"), c("ef"))), (c("ab"), c("cd"), c("ef")));
+    assert_eq!(normalize_set_of_three((c("ef"), c("ab"), c("cd"))), (c("ab"), c("cd"), c("ef")));
+}
+
+fn find_sets_of_three(network:&Network) -> Vec<SetOfThree> {
+    let mut sets : Vec<(Computer, Computer, Computer)> = Vec::new();
+    for &computer1 in &network.computers {
+        let linked1 = network.links_from(computer1);
+        for computer2 in linked1 {
+            let linked2 = network.links_from(computer2);
+            for computer3 in linked2 {
+                if computer3 == computer1 { continue; }
+                let set = normalize_set_of_three((computer1,computer2,computer3));
+                sets.push(set);
+            }
+        }
+    }
+    sets.sort();
+    sets.dedup();
+    sets
+}
+
 #[cfg(test)]
 fn c(name:&str) -> Computer {
     Computer::from_str(name)
@@ -111,4 +150,20 @@ fn test_example1() {
     computers.sort();
     assert_eq!(computers, vec!["aq", "cg", "co", "de", "ka", "kh", "qp", "ta", "tb", "tc", "td", "ub", "vc", "wh", "wq", "yn" ]);
     assert_eq!(network.links_from(c("de")),vec![c("cg"), c("co"), c("ta"), c("ka")]);
+
+    let sets = find_sets_of_three(&network);
+    assert_eq!(sets, vec![
+        (c("aq"),c("cg"),c("yn")),
+        (c("aq"),c("vc"),c("wq")),
+        (c("co"),c("de"),c("ka")),
+        (c("co"),c("de"),c("ta")),
+        (c("co"),c("ka"),c("ta")),
+        (c("de"),c("ka"),c("ta")),
+        (c("kh"),c("qp"),c("ub")),
+        (c("qp"),c("td"),c("wh")),
+        (c("tb"),c("vc"),c("wq")),
+        (c("tc"),c("td"),c("wh")),
+        (c("td"),c("wh"),c("yn")),
+        (c("ub"),c("vc"),c("wq"))
+    ]);
 }
