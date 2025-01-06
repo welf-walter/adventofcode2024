@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 type Stone = u64;
 
+#[cfg(test)]
 type Stones = Vec<Stone>;
 
 fn split_even_numbered_stone(stone:Stone) -> Option<(Stone, Stone)> {
@@ -25,6 +26,7 @@ fn test_split() {
     assert_eq!(split_even_numbered_stone(1234), Some((12,34)));
 }
 
+#[cfg(test)]
 fn change_stones(before:Stones) -> Stones {
     let mut after = Stones::new();
     for stone in before {
