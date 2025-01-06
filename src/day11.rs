@@ -77,4 +77,8 @@ pub fn puzzle() {
         stones = change_stones(stones);
     }
     println!("Day 11, Part 1: Number of stones after blinking 25 times is {}", stones.len());
+    for _ in 25..75 {
+        stones = change_stones(stones);
+    }
+    println!("Day 11, Part 2: Number of stones after blinking 75 times is {}", stones.len());
 }
