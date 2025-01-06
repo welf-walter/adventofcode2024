@@ -73,7 +73,7 @@ pub fn puzzle() {
     let lines = crate::helper::read_file("input/day11.txt");
     let input = lines[0].split(' ').map(|s| s.parse::<Stone>().unwrap()).collect();
     let mut stones = input;
-    for _ in 1..25 {
+    for _ in 0..25 {
         stones = change_stones(stones);
     }
     println!("Day 11, Part 1: Number of stones after blinking 25 times is {}", stones.len());
