@@ -93,22 +93,43 @@ fn test_change_stones() {
     let initial = vec![125, 17];
     let blink1 = change_stones(initial);
     assert_eq!(blink1, vec![253000, 1, 7]);
+    assert_eq!(cache.number_of_stones_after_blinking_n_times(125,1), 1);
+    assert_eq!(cache.number_of_stones_after_blinking_n_times(17,1), 2);
+
     let blink2 = change_stones(blink1);
     assert_eq!(blink2, vec![253, 0, 2024, 14168]);
+    assert_eq!(cache.number_of_stones_after_blinking_n_times(125,2), 2);
+    assert_eq!(cache.number_of_stones_after_blinking_n_times(17,2), 2);
+
     let blink3 = change_stones(blink2);
     assert_eq!(blink3, vec![512072, 1, 20, 24, 28676032]);
+    assert_eq!(cache.number_of_stones_after_blinking_n_times(125,3), 2);
+    assert_eq!(cache.number_of_stones_after_blinking_n_times(17,3), 3);
+
     let blink4 = change_stones(blink3);
     assert_eq!(blink4, vec![512, 72, 2024, 2, 0, 2, 4, 2867, 6032]);
+    assert_eq!(cache.number_of_stones_after_blinking_n_times(125,4), 3);
+    assert_eq!(cache.number_of_stones_after_blinking_n_times(17,4), 6);
+
     let blink5 = change_stones(blink4);
     assert_eq!(blink5, vec![1036288, 7, 2, 20, 24, 4048, 1, 4048, 8096, 28, 67, 60, 32]);
+    assert_eq!(cache.number_of_stones_after_blinking_n_times(125,5), 5);
+    assert_eq!(cache.number_of_stones_after_blinking_n_times(17,5), 8);
+
     let blink6 = change_stones(blink5);
     assert_eq!(blink6, vec![2097446912, 14168, 4048, 2, 0, 2, 4, 40, 48, 2024, 40, 48, 80, 96, 2, 8, 6, 7, 6, 0, 3, 2]);
     assert_eq!(blink6.len(), 22);
+    assert_eq!(cache.number_of_stones_after_blinking_n_times(125,6), 7);
+    assert_eq!(cache.number_of_stones_after_blinking_n_times(17,6), 15);
+
     let mut blinkn = blink6;
     for _ in 6..25 {
         blinkn = change_stones(blinkn);
     }
     assert_eq!(blinkn.len(), 55312);
+    assert_eq!(cache.number_of_stones_after_blinking_n_times(125,25)+
+               cache.number_of_stones_after_blinking_n_times(17,25), 55312);
+
 }
 
 //////////////////////////////////////////
