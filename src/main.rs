@@ -49,7 +49,7 @@ fn main() {
             8=>day8::puzzle(),
             9=>day9::puzzle(),
             10=>day10::puzzle(),
-            11=>{}, //day11::puzzle(),
+            11=>day11::puzzle(),
             12=>day12::puzzle(),
             13=>{}, //day13::puzzle(),
             14=>{}, //day14::puzzle(),

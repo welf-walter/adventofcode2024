@@ -1,4 +1,4 @@
-type Stone = u32;
+type Stone = u64;
 
 type Stones = Vec<Stone>;
 
@@ -8,8 +8,8 @@ fn split_even_numbered_stone(stone:Stone) -> Option<(Stone, Stone)> {
     if len % 2 == 0 {
         let stone1_str = &stone_string[.. len / 2];
         let stone2_str = &stone_string[   len / 2 ..];
-        Some((stone1_str.parse::<u32>().unwrap(),
-              stone2_str.parse::<u32>().unwrap()))
+        Some((stone1_str.parse::<Stone>().unwrap(),
+              stone2_str.parse::<Stone>().unwrap()))
     } else {
         None
     }
@@ -63,4 +63,18 @@ fn test_change_stones() {
         blinkn = change_stones(blinkn);
     }
     assert_eq!(blinkn.len(), 55312);
+}
+
+//////////////////////////////////////////
+/// Puzzle
+//////////////////////////////////////////
+
+pub fn puzzle() {
+    let lines = crate::helper::read_file("input/day11.txt");
+    let input = lines[0].split(' ').map(|s| s.parse::<Stone>().unwrap()).collect();
+    let mut stones = input;
+    for _ in 1..25 {
+        stones = change_stones(stones);
+    }
+    println!("Day 11, Part 1: Number of stones after blinking 25 times is {}", stones.len());
 }
