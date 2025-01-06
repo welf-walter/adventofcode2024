@@ -138,14 +138,8 @@ fn test_change_stones() {
 
 pub fn puzzle() {
     let lines = crate::helper::read_file("input/day11.txt");
-    let input = lines[0].split(' ').map(|s| s.parse::<Stone>().unwrap()).collect();
-    let mut stones = input;
-    for _ in 0..25 {
-        stones = change_stones(stones);
-    }
-    println!("Day 11, Part 1: Number of stones after blinking 25 times is {}", stones.len());
-    for _ in 25..75 {
-        stones = change_stones(stones);
-    }
-    println!("Day 11, Part 2: Number of stones after blinking 75 times is {}", stones.len());
+    let input = lines[0].split(' ').map(|s| s.parse::<Stone>().unwrap()).collect::<Vec<Stone>>();
+    let mut cache=Cache::new();
+    println!("Day 11, Part 1: Number of stones after blinking 25 times is {}", input.iter().map(|&initial_stone| cache.number_of_stones_after_blinking_n_times(initial_stone, 25)).sum::<usize>());
+    println!("Day 11, Part 2: Number of stones after blinking 75 times is {}", input.iter().map(|&initial_stone| cache.number_of_stones_after_blinking_n_times(initial_stone, 75)).sum::<usize>());
 }
