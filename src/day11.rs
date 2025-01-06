@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 type Stone = u64;
 
 type Stones = Vec<Stone>;
@@ -38,11 +40,55 @@ fn change_stones(before:Stones) -> Stones {
     after
 }
 
+struct Cache {
+    cache:HashMap<(Stone,usize), usize>
+}
+
+impl Cache {
+    fn new() -> Self {
+        Self {
+            cache:HashMap::new()
+        }
+    }
+
+    fn number_of_stones_after_blinking_n_times(&mut self, initial_stone:Stone, n:usize) -> usize {
+        if n == 0 {
+            return 1;
+        }
+        let cached = self.cache.get(&(initial_stone, n));
+        if let Some(count) = cached {
+            return *count;
+        }
+        if initial_stone == 0 {
+            let new_count = self.number_of_stones_after_blinking_n_times(1, n-1);
+            self.cache.insert((1, n-1), new_count);
+            return new_count;
+        }
+        if let Some((new1, new2)) = split_even_numbered_stone(initial_stone) {
+            let new_count1 = self.number_of_stones_after_blinking_n_times(new1, n-1);
+            self.cache.insert((new1, n-1), new_count1);
+            let new_count2 = self.number_of_stones_after_blinking_n_times(new2, n-1);
+            self.cache.insert((new2, n-1), new_count2);
+            return new_count1 + new_count2;
+        }
+        let new = initial_stone*2024;
+        let new_count = self.number_of_stones_after_blinking_n_times(new, n-1);
+        self.cache.insert((new, n-1), new_count);
+        return new_count;
+    }
+}
+
 #[test]
 fn test_change_stones() {
     let input1  = vec![0,    1,   10,   99,     999];
     let expect1 = vec![1, 2024, 1, 0, 9, 9, 2021976];
     assert_eq!(change_stones(input1), expect1);
+    let mut cache=Cache::new();
+    assert_eq!(cache.number_of_stones_after_blinking_n_times(0,1), 1);
+    assert_eq!(cache.number_of_stones_after_blinking_n_times(1,1), 1);
+    assert_eq!(cache.number_of_stones_after_blinking_n_times(10,1), 2);
+    assert_eq!(cache.number_of_stones_after_blinking_n_times(99,1), 2);
+    assert_eq!(cache.number_of_stones_after_blinking_n_times(999,1), 1);
 
     let initial = vec![125, 17];
     let blink1 = change_stones(initial);
