@@ -141,4 +141,5 @@ fn test_machine() {
     assert_eq!(machines[1].get_cost_to_win(), None);
     assert_eq!(machines[2].get_cost_to_win(), Some(200));
     assert_eq!(machines[3].get_cost_to_win(), None);
+    assert_eq!(machines.iter().map(|machine| machine.get_cost_to_win().unwrap_or(0)).sum::<Cost>(), 280+200);
 }
