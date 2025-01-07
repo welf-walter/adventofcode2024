@@ -41,8 +41,13 @@ impl Machine {
     fn get_cost_to_win(&self) -> Option<Cost> {
         // push A m times, push B n times
         let (m,n) = solve_equation(self.a, self.b, self.prize);
-        let cost:Cost = m as Cost *COST_OF_A + n as Cost *COST_OF_B;
-        Some(cost)
+        if m * self.a.0 + n * self.b.0 == self.prize.0 &&
+           m * self.a.1 + n * self.b.1 == self.prize.1 {
+               let cost:Cost = m as Cost *COST_OF_A + n as Cost *COST_OF_B;
+               Some(cost)
+        } else {
+            None
+        }
     }
 }
 
@@ -123,10 +128,17 @@ Prize: X=8400, Y=5400
     let machines = build_file(Day13Parser::parse(Rule::file, example1()).unwrap().peek().unwrap());
     assert_eq!(machines.len(), 4);
 
+    assert_eq!(solve_equation((94, 34), (22, 67), (8400, 5400)), (80, 40));
+}
+
+#[test]
+fn test_machine() {
+    let machines = build_file(Day13Parser::parse(Rule::file, example1()).unwrap().peek().unwrap());
+
+    assert_eq!(solve_equation((94, 34), (22, 67), (8400, 5400)), (80, 40));
     assert_eq!(machines[0].get_cost_to_win(), Some(280));
+    assert_eq!(solve_equation((26, 66), (67, 21), (12748, 12176)), (141, 135));
     assert_eq!(machines[1].get_cost_to_win(), None);
     assert_eq!(machines[2].get_cost_to_win(), Some(200));
     assert_eq!(machines[3].get_cost_to_win(), None);
-
 }
-
