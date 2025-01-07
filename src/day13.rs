@@ -181,6 +181,11 @@ pub fn puzzle() {
     let lines_concatenated = lines.join("\n");
     let machines = build_file(Day13Parser::parse(Rule::file, &lines_concatenated ).unwrap().peek().unwrap());
 
-    let sum_of_cost = machines.iter().map(|machine| machine.get_cost_to_win().unwrap_or(0)).sum::<Cost>();
-    println!("Day 13, Part 1: Sum of costs to win all prizes is {}", sum_of_cost);
+    let sum_of_cost1 = machines.iter().map(|machine| machine.get_cost_to_win().unwrap_or(0)).sum::<Cost>();
+    println!("Day 13, Part 1: Sum of costs to win all prizes is {}", sum_of_cost1);
+
+    let machines2:Vec<Machine> = machines.iter().map(|machine| machine.convert_to_part_2()).collect();
+    let sum_of_cost2 = machines2.iter().map(|machine| machine.get_cost_to_win().unwrap_or(0)).sum::<Cost>();
+    println!("Day 13, Part 2: Sum of costs to win all prizes is {}", sum_of_cost2);
+
 }
