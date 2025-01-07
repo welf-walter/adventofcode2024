@@ -1,10 +1,11 @@
-const VERBOSE:bool = true;
+const VERBOSE:bool = false;
 
-type Cost = u32;
-type Position = i32;
+type Cost = u64;
+type Position = i64;
 
 const COST_OF_A:Cost = 3;
 const COST_OF_B:Cost = 1;
+const PART_B_OFFSET:Position = 10000000000000;
 
 #[derive(Debug, PartialEq)]
 struct Machine {
@@ -49,7 +50,7 @@ impl Machine {
                 n, self.b.0, self.b.1,
                 m * self.a.0 + n * self.b.0, m * self.a.1 + n * self.b.1
             )}
-        if m >=0 && n >= 0 && m < 100 && n < 100 &&
+        if m >=0 && n >= 0 /* && m < 100 && n < 100 */ &&
            m * self.a.0 + n * self.b.0 == self.prize.0 &&
            m * self.a.1 + n * self.b.1 == self.prize.1 {
                let cost:Cost = m as Cost *COST_OF_A + n as Cost *COST_OF_B;
@@ -58,6 +59,14 @@ impl Machine {
         } else {
             if VERBOSE { println!(" != ({},{}) or other problem", self.prize.0, self.prize.1); }
             None
+        }
+    }
+
+    fn convert_to_part_2(&self) -> Self {
+        Machine {
+            a:self.a,
+            b:self.b,
+            prize:(self.prize.0 + PART_B_OFFSET, self.prize.1 + PART_B_OFFSET)
         }
     }
 }
@@ -153,6 +162,13 @@ fn test_machine() {
     assert_eq!(machines[2].get_cost_to_win(), Some(200));
     assert_eq!(machines[3].get_cost_to_win(), None);
     assert_eq!(machines.iter().map(|machine| machine.get_cost_to_win().unwrap_or(0)).sum::<Cost>(), 280+200);
+
+    let machines2:Vec<Machine> = machines.iter().map(|machine| machine.convert_to_part_2()).collect();
+    assert_eq!(machines2[0].get_cost_to_win(), None);
+    assert_eq!(machines2[1].get_cost_to_win(), Some(459236326669));
+    assert_eq!(machines2[2].get_cost_to_win(), None);
+    assert_eq!(machines2[3].get_cost_to_win(), Some(416082282239));
+    assert_eq!(machines2.iter().map(|machine| machine.get_cost_to_win().unwrap_or(0)).sum::<Cost>(), 459236326669+416082282239);
 }
 
 
