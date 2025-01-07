@@ -1,3 +1,5 @@
+const VERBOSE:bool = true;
+
 type Cost = u32;
 type Position = i32;
 
@@ -41,11 +43,21 @@ impl Machine {
     fn get_cost_to_win(&self) -> Option<Cost> {
         // push A m times, push B n times
         let (m,n) = solve_equation(self.a, self.b, self.prize);
-        if m * self.a.0 + n * self.b.0 == self.prize.0 &&
+        if VERBOSE {
+            print!("{}*({},{}) + {}*({},{}) == ({},{}) ({},{}) ",
+                m, self.a.0, self.a.1,
+                n, self.b.0, self.b.1,
+                m * self.a.0 + n * self.b.0, m * self.a.1 + n * self.b.1,
+                self.prize.0, self.prize.1,
+            )}
+        if m >=0 && n >= 0 &&
+           m * self.a.0 + n * self.b.0 == self.prize.0 &&
            m * self.a.1 + n * self.b.1 == self.prize.1 {
                let cost:Cost = m as Cost *COST_OF_A + n as Cost *COST_OF_B;
+               if VERBOSE { println!("Cost = {}", cost); }
                Some(cost)
         } else {
+            if VERBOSE { println!("No!"); }
             None
         }
     }
@@ -114,7 +126,7 @@ fn test_parse() {
     assert_eq!(parse1.as_rule(), Rule::number);
     assert_eq!(parse1.as_str(), "42");
 
-    let input1 = 
+    let input1 =
 "Button A: X+94, Y+34
 Button B: X+22, Y+67
 Prize: X=8400, Y=5400
