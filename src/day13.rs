@@ -1,5 +1,5 @@
 type Cost = u32;
-type Position = u32;
+type Position = i32;
 
 const COST_OF_A:Cost = 3;
 const COST_OF_B:Cost = 1;
@@ -10,6 +10,40 @@ struct Machine {
     a:(Position, Position),
     b:(Position, Position),
     prize:(Position, Position)
+}
+
+// solve equation m * a + n * b = prize
+fn solve_equation(a:(Position, Position), b:(Position, Position), prize:(Position, Position)) -> (/*m: */Position, /*n: */ Position) {
+    // m * a.0 + n * b.0 = prize.0
+    // m * a.1 + n * b.1 = prize.1
+    // ---------------------------
+    // m * a.0 * a.1 + n * b.0 * a.1 = prize.0 * a.1
+    // m * a.1 * a.0 + n * b.1 * a.0 = prize.1 * a.0
+    // ---------------------------
+    // n * b.0 * a.1 - n * b.1 * a.0 = prize.0 * a.1 - prize.1 * a.0
+    // ---------------------------
+    // n * ( b.0 * a.1 - b.1 * a.0 ) = prize.0 * a.1 - prize.1 * a.0
+    // n = ( prize.0 * a.1 - prize.1 * a.0 ) / ( b.0 * a.1 - b.1 * a.0 )
+    let n = ( prize.0 * a.1 - prize.1 * a.0 ) / ( b.0 * a.1 - b.1 * a.0 );
+    // m * a.0 * b.1 + n * b.0 * b.1 = prize.0 * b.1
+    // m * a.1 * b.0 + n * b.1 * b.0 = prize.1 * b.0
+    // ---------------------------
+    // m * a.0 * b.1 - m * a.1 * b.0 = prize.0 * b.1 - prize.1 * b.0
+    // ---------------------------
+    // m * ( a.0 * b.1 - a.1 * b.0 ) = prize.0 * b.1 - prize.1 * b.0
+    // ---------------------------
+    // m = ( prize.0 * b.1 - prize.1 * b.0 ) / ( a.0 * b.1 - a.1 * b.0 )
+    let m = ( prize.0 * b.1 - prize.1 * b.0 ) / ( a.0 * b.1 - a.1 * b.0 );
+    (m,n)
+}
+
+impl Machine {
+    fn get_cost_to_win(&self) -> Option<Cost> {
+        // push A m times, push B n times
+        let (m,n) = solve_equation(self.a, self.b, self.prize);
+        let cost:Cost = m as Cost *COST_OF_A + n as Cost *COST_OF_B;
+        Some(cost)
+    }
 }
 
 //////////////////////////////////////////
@@ -88,6 +122,11 @@ Prize: X=8400, Y=5400
     assert!(Day13Parser::parse(Rule::file, example1()).is_ok());
     let machines = build_file(Day13Parser::parse(Rule::file, example1()).unwrap().peek().unwrap());
     assert_eq!(machines.len(), 4);
+
+    assert_eq!(machines[0].get_cost_to_win(), Some(280));
+    assert_eq!(machines[1].get_cost_to_win(), None);
+    assert_eq!(machines[2].get_cost_to_win(), Some(200));
+    assert_eq!(machines[3].get_cost_to_win(), None);
 
 }
 
