@@ -1,0 +1,17 @@
+// test on: https://pest.rs/#editor
+
+// Button A: X+94, Y+34
+// Button B: X+22, Y+67
+// Prize: X=8400, Y=5400
+
+number = { ASCII_DIGIT + }
+
+machine = { 
+    "Button A: X+" ~ number ~ ", Y+" ~ number ~ NEWLINE ~
+    "Button B: X+" ~ number ~ ", Y+" ~ number ~ NEWLINE ~
+    "Prize: X=" ~ number ~ ", Y=" ~ number ~ NEWLINE
+}
+
+file = {
+    machine ~ ( NEWLINE ~ machine ) *
+}
