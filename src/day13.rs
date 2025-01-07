@@ -44,20 +44,19 @@ impl Machine {
         // push A m times, push B n times
         let (m,n) = solve_equation(self.a, self.b, self.prize);
         if VERBOSE {
-            print!("{}*({},{}) + {}*({},{}) == ({},{}) ({},{}) ",
+            print!("{}*({},{}) + {}*({},{}) == ({},{})",
                 m, self.a.0, self.a.1,
                 n, self.b.0, self.b.1,
-                m * self.a.0 + n * self.b.0, m * self.a.1 + n * self.b.1,
-                self.prize.0, self.prize.1,
+                m * self.a.0 + n * self.b.0, m * self.a.1 + n * self.b.1
             )}
-        if m >=0 && n >= 0 &&
+        if m >=0 && n >= 0 && m < 100 && n < 100 &&
            m * self.a.0 + n * self.b.0 == self.prize.0 &&
            m * self.a.1 + n * self.b.1 == self.prize.1 {
                let cost:Cost = m as Cost *COST_OF_A + n as Cost *COST_OF_B;
-               if VERBOSE { println!("Cost = {}", cost); }
+               if VERBOSE { println!(" Cost = {}", cost); }
                Some(cost)
         } else {
-            if VERBOSE { println!("No!"); }
+            if VERBOSE { println!(" != ({},{}) or other problem", self.prize.0, self.prize.1); }
             None
         }
     }
