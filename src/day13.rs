@@ -143,3 +143,17 @@ fn test_machine() {
     assert_eq!(machines[3].get_cost_to_win(), None);
     assert_eq!(machines.iter().map(|machine| machine.get_cost_to_win().unwrap_or(0)).sum::<Cost>(), 280+200);
 }
+
+
+//////////////////////////////////////////
+/// Puzzle
+//////////////////////////////////////////
+
+pub fn puzzle() {
+    let lines = crate::helper::read_file("input/day13.txt");
+    let lines_concatenated = lines.join("\n");
+    let machines = build_file(Day13Parser::parse(Rule::file, &lines_concatenated ).unwrap().peek().unwrap());
+
+    let sum_of_cost = machines.iter().map(|machine| machine.get_cost_to_win().unwrap_or(0)).sum::<Cost>();
+    println!("Day 13, Part 1: Sum of costs to win all prizes is {}", sum_of_cost);
+}
