@@ -104,3 +104,18 @@ p=9,5 v=-3,-3";
     let positions = robots.iter().map(|robot| robot.move_robot(&bathroom, 100));
     assert_eq!(get_safety_factor(&bathroom, positions), 12);
 }
+
+//////////////////////////////////////////
+/// Puzzle
+//////////////////////////////////////////
+
+pub fn puzzle() {
+    let lines = crate::helper::read_file("input/day14.txt");
+    let robots = lines.iter().map(|line| Robot::from_string(line)).collect::<Vec<Robot>>();
+
+    let bathroom = Bathroom{width:101, height:103};
+    let positions = robots.iter().map(|robot| robot.move_robot(&bathroom, 100));
+    let safety_factor = get_safety_factor(&bathroom, positions);
+    println!("Day 14, Part 1: Safety factor after moving {} robots for 100 seconds is {}", robots.len(), safety_factor);
+
+}

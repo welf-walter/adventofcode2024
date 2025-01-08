@@ -52,7 +52,7 @@ fn main() {
             11=>day11::puzzle(),
             12=>day12::puzzle(),
             13=>day13::puzzle(),
-            14=>{}, //day14::puzzle(),
+            14=>day14::puzzle(),
             15=>day15::puzzle(),
             16=>day16::puzzle(),
             17=>{}, //day14::puzzle(),
