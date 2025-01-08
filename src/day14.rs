@@ -8,6 +8,19 @@ struct Bathroom {
     height:Height
 }
 
+type QuadrantCounter = (u32,u32,u32,u32);
+
+impl Bathroom {
+    fn get_quadrant_counter(&self, position:Position) -> QuadrantCounter {
+        if position.0 > self.width / 2 && position.1 < self.height / 2 { (1,0,0,0) } else
+        if position.0 < self.width / 2 && position.1 < self.height / 2 { (0,1,0,0) } else
+        if position.0 > self.width / 2 && position.1 > self.height / 2 { (0,0,1,0) } else
+        if position.0 < self.width / 2 && position.1 > self.height / 2 { (0,0,0,1) } else {
+            (0,0,0,0)
+        }
+    }
+}
+
 #[derive(Debug, PartialEq)]
 struct Robot {
     position:Position,
@@ -41,6 +54,19 @@ impl Robot {
         ((self.position.0 + counter * dx ) % bathroom.width,
          (self.position.1 + counter * dy ) % bathroom.height)
     }
+
+}
+
+fn get_safety_factor<Iter:Iterator<Item=Position>>(bathroom:&Bathroom, positions:Iter) -> u32 {
+    let mut counters:QuadrantCounter = (0,0,0,0);
+    for pos in positions {
+        let counter = bathroom.get_quadrant_counter(pos);
+        counters.0 += counter.0;
+        counters.1 += counter.1;
+        counters.2 += counter.2;
+        counters.3 += counter.3;
+    }
+    counters.0 * counters.1 * counters.2 * counters.3
 }
 
 #[test]
@@ -73,4 +99,8 @@ p=9,5 v=-3,-3";
     assert_eq!(robots.len(), 12);
     assert_eq!(robots[0], Robot{position:(0,4),velocity:(3,-3)});
     assert_eq!(robots[1], Robot{position:(6,3),velocity:(-1,-3)});
+
+    let bathroom = Bathroom{width:11, height:7};
+    let positions = robots.iter().map(|robot| robot.move_robot(&bathroom, 100));
+    assert_eq!(get_safety_factor(&bathroom, positions), 12);
 }
