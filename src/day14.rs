@@ -31,8 +31,29 @@ impl Robot {
         Robot { position:(px,py),velocity:(vx,vy) }
 
     }
+
+    // move the robot {counter} times through {bathroom}
+    fn move_robot(&self, bathroom:&Bathroom, counter:u32) -> Position {
+        let vx = self.velocity.0;
+        let vy = self.velocity.1;
+        let dx = if vx > 0 { vx as u32 } else { (bathroom.width  as i32 + vx) as u32 };
+        let dy = if vy > 0 { vy as u32 } else { (bathroom.height as i32 + vy) as u32 };
+        ((self.position.0 + counter * dx ) % bathroom.width,
+         (self.position.1 + counter * dy ) % bathroom.height)
+    }
 }
 
+#[test]
+fn test_move() {
+    let bathroom = Bathroom{width:11, height:7};
+    let robot = Robot::from_string("p=2,4 v=2,-3");
+    assert_eq!(robot.move_robot(&bathroom, 0), (2,4) );
+    assert_eq!(robot.move_robot(&bathroom, 1), (4,1) );
+    assert_eq!(robot.move_robot(&bathroom, 2), (6,5) );
+    assert_eq!(robot.move_robot(&bathroom, 3), (8,2) );
+    assert_eq!(robot.move_robot(&bathroom, 4), (10,6) );
+    assert_eq!(robot.move_robot(&bathroom, 5), (1,3) );
+}
 #[test]
 fn test_example() {
     let input1 =
