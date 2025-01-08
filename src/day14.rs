@@ -69,6 +69,18 @@ fn get_safety_factor<Iter:Iterator<Item=Position>>(bathroom:&Bathroom, positions
     counters.0 * counters.1 * counters.2 * counters.3
 }
 
+fn is_horizontally_symmetric<Iter:Iterator<Item=Position>>(bathroom:&Bathroom, positions:Iter) -> bool {
+    let mut counters:QuadrantCounter = (0,0,0,0);
+    for pos in positions {
+        let counter = bathroom.get_quadrant_counter(pos);
+        counters.0 += counter.0;
+        counters.1 += counter.1;
+        counters.2 += counter.2;
+        counters.3 += counter.3;
+    }
+    counters.0 == counters.1 && counters.2 == counters.3
+}
+
 #[test]
 fn test_move() {
     let bathroom = Bathroom{width:11, height:7};
@@ -118,4 +130,12 @@ pub fn puzzle() {
     let safety_factor = get_safety_factor(&bathroom, positions);
     println!("Day 14, Part 1: Safety factor after moving {} robots for 100 seconds is {}", robots.len(), safety_factor);
 
+    // as I don't know how the christmas tree should look like, we use a heuristic:
+    // assume that a horizontally symmetric form is the tree
+    for moves in 0..10000 {
+        let positions = robots.iter().map(|robot| robot.move_robot(&bathroom, moves));
+        if is_horizontally_symmetric(&bathroom, positions) {
+            println!("Day 14, Part 2: Tree could be after moving {} robots for {} seconds", robots.len(), moves);
+        }
+    }
 }
