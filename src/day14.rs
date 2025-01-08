@@ -1,14 +1,14 @@
-type Position = (u32,u32);
+type Position = (usize,usize);
 type Velocity = (i32,i32);
-type Width = u32;
-type Height = u32;
+type Width = usize;
+type Height = usize;
 
 struct Bathroom {
     width:Width,
     height:Height
 }
 
-type QuadrantCounter = (u32,u32,u32,u32);
+type QuadrantCounter = (usize,usize,usize,usize);
 
 impl Bathroom {
     fn get_quadrant_counter(&self, position:Position) -> QuadrantCounter {
@@ -36,8 +36,8 @@ impl Robot {
 
         let r = Regex::new(r"p=(\d+),(\d+) v=(-?\d+),(-?\d+)").unwrap();
         let caps = r.captures(line).unwrap();
-        let px = caps.get(1).unwrap().as_str().parse::<u32>().unwrap();
-        let py = caps.get(2).unwrap().as_str().parse::<u32>().unwrap();
+        let px = caps.get(1).unwrap().as_str().parse::<usize>().unwrap();
+        let py = caps.get(2).unwrap().as_str().parse::<usize>().unwrap();
         let vx = caps.get(3).unwrap().as_str().parse::<i32>().unwrap();
         let vy = caps.get(4).unwrap().as_str().parse::<i32>().unwrap();
 
@@ -46,18 +46,18 @@ impl Robot {
     }
 
     // move the robot {counter} times through {bathroom}
-    fn move_robot(&self, bathroom:&Bathroom, counter:u32) -> Position {
+    fn move_robot(&self, bathroom:&Bathroom, counter:usize) -> Position {
         let vx = self.velocity.0;
         let vy = self.velocity.1;
-        let dx = if vx > 0 { vx as u32 } else { (bathroom.width  as i32 + vx) as u32 };
-        let dy = if vy > 0 { vy as u32 } else { (bathroom.height as i32 + vy) as u32 };
+        let dx = if vx > 0 { vx as usize } else { (bathroom.width  as i32 + vx) as usize };
+        let dy = if vy > 0 { vy as usize } else { (bathroom.height as i32 + vy) as usize };
         ((self.position.0 + counter * dx ) % bathroom.width,
          (self.position.1 + counter * dy ) % bathroom.height)
     }
 
 }
 
-fn get_safety_factor<Iter:Iterator<Item=Position>>(bathroom:&Bathroom, positions:Iter) -> u32 {
+fn get_safety_factor<Iter:Iterator<Item=Position>>(bathroom:&Bathroom, positions:Iter) -> usize {
     let mut counters:QuadrantCounter = (0,0,0,0);
     for pos in positions {
         let counter = bathroom.get_quadrant_counter(pos);
@@ -69,7 +69,7 @@ fn get_safety_factor<Iter:Iterator<Item=Position>>(bathroom:&Bathroom, positions
     counters.0 * counters.1 * counters.2 * counters.3
 }
 
-fn is_horizontally_symmetric<Iter:Iterator<Item=Position>>(bathroom:&Bathroom, positions:Iter) -> bool {
+fn might_be_horizontally_symmetric<Iter:Iterator<Item=Position>>(bathroom:&Bathroom, positions:Iter) -> bool {
     let mut counters:QuadrantCounter = (0,0,0,0);
     for pos in positions {
         let counter = bathroom.get_quadrant_counter(pos);
@@ -80,6 +80,45 @@ fn is_horizontally_symmetric<Iter:Iterator<Item=Position>>(bathroom:&Bathroom, p
     }
     counters.0 == counters.1 && counters.2 == counters.3
 }
+
+type Image = crate::maps::PixelMap<char>;
+
+fn positions_to_image<Iter:Iterator<Item=Position>>(bathroom:&Bathroom, positions:Iter) -> Image {
+    let mut image  = Image::new(bathroom.width, bathroom.height, '.');
+
+    for pos in positions {
+        image.set_at(pos,'*');
+    }
+
+    image
+
+}
+
+/*
+fn print_positions<Iter:Iterator<Item=Position>>(bathroom:&Bathroom, positions:Iter) {
+    let mut image: Vec<Vec<char>> = Vec::new();
+    for _y in 0..bathroom.height {
+        let mut line = Vec::new();
+        for _x in 0..bathroom.width {
+            line.push('.');
+        }
+        image.push(line);
+
+    }
+
+    for pos in positions {
+        image[pos.1 as usize][pos.0 as usize] = '*';
+    }
+
+    for y in 0..bathroom.height {
+        for x in 0..bathroom.width {
+            print!("{}", image[y as usize][x as usize]);
+        }
+        println!("");
+
+    }
+}
+*/
 
 #[test]
 fn test_move() {
@@ -134,8 +173,12 @@ pub fn puzzle() {
     // assume that a horizontally symmetric form is the tree
     for moves in 0..10000 {
         let positions = robots.iter().map(|robot| robot.move_robot(&bathroom, moves));
-        if is_horizontally_symmetric(&bathroom, positions) {
-            println!("Day 14, Part 2: Tree could be after moving {} robots for {} seconds", robots.len(), moves);
+        if might_be_horizontally_symmetric(&bathroom, positions) {
+            let positions = robots.iter().map(|robot| robot.move_robot(&bathroom, moves));
+            let image = positions_to_image(&bathroom, positions);
+            if image.is_horizontally_symmetric() {
+                println!("Day 14, Part 2: Tree could be after moving {} robots for {} seconds", robots.len(), moves);
+            }
         }
     }
 }

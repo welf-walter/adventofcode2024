@@ -189,6 +189,19 @@ impl<E:FromChar+Copy+PartialEq> PixelMap<E> {
         None
     }
 
+    pub fn new(width:usize, height:usize, init_value:E) -> Self {
+        let mut pixels = Vec::new();
+
+        for _y in 0..height {
+            let mut line = Vec::new();
+            for _x in 0..width {
+                line.push(init_value);
+            }
+            pixels.push(line);
+        }
+        Self{area:Area{width,height}, pixels}
+    }
+
     pub fn from_strings<'a>(lines:impl Iterator<Item=&'a str>) -> Self {
         let mut width = 0;
         let mut height = 0;
@@ -203,8 +216,21 @@ impl<E:FromChar+Copy+PartialEq> PixelMap<E> {
             pixels.push(row);
             height = height + 1;
         }
-        Self{area:Area{width:width,height:height}, pixels:pixels}
+        Self{area:Area{width,height}, pixels}
     }
+
+    pub fn is_horizontally_symmetric(&self) -> bool {
+        for y in 0..self.area.height {
+            let line = &self.pixels[y];
+            for x in 0..self.area.width / 2 {
+                if line[x] != line[self.area.width - x - 1] {
+                    return false;
+                }
+            }
+        }
+        true
+    }
+
 }
 
 #[derive(PartialEq, Debug, Clone, Copy)]
