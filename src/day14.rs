@@ -3,6 +3,8 @@ type Velocity = (i32,i32);
 type Width = usize;
 type Height = usize;
 
+const VERBOSE:bool = false;
+
 struct Bathroom {
     width:Width,
     height:Height
@@ -160,6 +162,22 @@ p=9,5 v=-3,-3";
 /// Puzzle
 //////////////////////////////////////////
 
+fn find_substring(image:&Image, substring:&str) -> bool {
+    for y in 0..image.area.height {
+        for startx in 0..image.area.width - substring.len() {
+            let mut is_match = true;
+            let mut subs = substring.chars().into_iter();
+            for x in 0..substring.len() {
+                if image.pixels[y][startx+x] != subs.next().unwrap() {
+                    is_match = false;
+                }
+            }
+            if is_match { return true; }
+        }
+    }
+    false
+}
+
 pub fn puzzle() {
     let lines = crate::helper::read_file("input/day14.txt");
     let robots = lines.iter().map(|line| Robot::from_string(line)).collect::<Vec<Robot>>();
@@ -169,12 +187,16 @@ pub fn puzzle() {
     let safety_factor = get_safety_factor(&bathroom, positions);
     println!("Day 14, Part 1: Safety factor after moving {} robots for 100 seconds is {}", robots.len(), safety_factor);
 
-    // as I don't know how the christmas tree should look like, we use a heuristic:
-    // assume that a horizontally symmetric form is the tree
-    for moves in 0..100 {
+    for moves in 0..10000 {
         let positions = robots.iter().map(|robot| robot.move_robot(&bathroom, moves));
-        println!("After {} seconds -----------------------------------------------------------------------------------", moves);
         let image = positions_to_image(&bathroom, positions);
-        image.println();
+        // assumption: a christmas tree has '**********' in it
+        if find_substring(&image, "***********") {
+            if VERBOSE {
+                println!("After {} seconds -----------------------------------------------------------------------------------", moves);
+                image.println();
+            }
+            println!("Day 14, Part 2: Christmas tree could be possible visible after {} seconds. I DID NOT LIKE THIS PUZZLE 😒", moves);
+        }
     }
 }
