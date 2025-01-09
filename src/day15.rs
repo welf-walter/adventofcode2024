@@ -33,6 +33,17 @@ impl crate::maps::FromChar for MapElement {
     }
 }
 
+impl crate::maps::ToChar for MapElement {
+    fn to_char(self) -> char {
+        match self {
+            Space => '.',
+            Wall => '#',
+            Box => 'O',
+            Robot => '@'
+        }
+    }
+}
+
 type Map = PixelMap<MapElement>;
 
 struct Puzzle {
@@ -160,6 +171,7 @@ fn test_puzzle2()
     let sections = split_input_sections::<2>(input2());
     let puzzle = read_input(sections[0].split('\n'), &sections[1].replace("\n",""));
     let final_map = execute_moves(&puzzle);
+    if VERBOSE { final_map.println(); }
     assert_eq!(get_gps(&final_map), 10092);
 }
 
