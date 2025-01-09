@@ -229,18 +229,6 @@ impl<E:FromChar+Copy+PartialEq> PixelMap<E> {
         Self{area:Area{width,height}, pixels}
     }
 
-    pub fn is_horizontally_symmetric(&self) -> bool {
-        for y in 0..self.area.height {
-            let line = &self.pixels[y];
-            for x in 0..self.area.width / 2 {
-                if line[x] != line[self.area.width - x - 1] {
-                    return false;
-                }
-            }
-        }
-        true
-    }
-
 }
 
 impl<E:FromChar+ToChar+Clone+Copy> PixelMap<E> {

@@ -71,18 +71,6 @@ fn get_safety_factor<Iter:Iterator<Item=Position>>(bathroom:&Bathroom, positions
     counters.0 * counters.1 * counters.2 * counters.3
 }
 
-fn might_be_horizontally_symmetric<Iter:Iterator<Item=Position>>(bathroom:&Bathroom, positions:Iter) -> bool {
-    let mut counters:QuadrantCounter = (0,0,0,0);
-    for pos in positions {
-        let counter = bathroom.get_quadrant_counter(pos);
-        counters.0 += counter.0;
-        counters.1 += counter.1;
-        counters.2 += counter.2;
-        counters.3 += counter.3;
-    }
-    counters.0 == counters.1 && counters.2 == counters.3
-}
-
 type Image = crate::maps::PixelMap<char>;
 
 fn positions_to_image<Iter:Iterator<Item=Position>>(bathroom:&Bathroom, positions:Iter) -> Image {
