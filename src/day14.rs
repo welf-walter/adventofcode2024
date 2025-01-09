@@ -171,14 +171,10 @@ pub fn puzzle() {
 
     // as I don't know how the christmas tree should look like, we use a heuristic:
     // assume that a horizontally symmetric form is the tree
-    for moves in 0..10000 {
+    for moves in 0..100 {
         let positions = robots.iter().map(|robot| robot.move_robot(&bathroom, moves));
-        if might_be_horizontally_symmetric(&bathroom, positions) {
-            let positions = robots.iter().map(|robot| robot.move_robot(&bathroom, moves));
-            let image = positions_to_image(&bathroom, positions);
-            if image.is_horizontally_symmetric() {
-                println!("Day 14, Part 2: Tree could be after moving {} robots for {} seconds", robots.len(), moves);
-            }
-        }
+        println!("After {} seconds -----------------------------------------------------------------------------------", moves);
+        let image = positions_to_image(&bathroom, positions);
+        image.println();
     }
 }

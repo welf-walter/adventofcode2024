@@ -160,6 +160,16 @@ pub trait FromChar {
     fn from_char(c:char) -> Self;
 }
 
+pub trait ToChar {
+    fn to_char(self) -> char;
+}
+
+impl ToChar for char {
+    fn to_char(self) -> char {
+        self
+    }
+}
+
 #[derive(Clone)]
 pub struct PixelMap<E:FromChar> {
     pub area:Area,
@@ -231,6 +241,18 @@ impl<E:FromChar+Copy+PartialEq> PixelMap<E> {
         true
     }
 
+}
+
+impl<E:FromChar+ToChar+Clone+Copy> PixelMap<E> {
+    pub fn println(&self) {
+        for y in 0..self.area.height {
+            let line = &self.pixels[y];
+            for x in 0..self.area.width {
+                print!("{}", line[x].to_char());
+            }
+            println!("");
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Copy)]
