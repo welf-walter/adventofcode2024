@@ -59,6 +59,36 @@ struct Puzzle {
     moves:Vec<Direction>
 }
 
+impl Puzzle {
+    fn can_move_box(&self, pos:Position, direction:Direction) -> bool {
+        assert!(self.map.at(pos) == Box);
+        let behind_pos = self.map.area.step(pos, direction).unwrap();
+        match self.map.at(behind_pos) {
+            Wall => { return false },
+            Space => { return true },
+            Box => { return self.can_move_box(behind_pos, direction) },
+            other => { panic!("Unexpected {:?} at {:?}", other, behind_pos)}
+        }
+    }
+
+}
+
+// return number of boxes
+fn move_box(map:&mut Map, pos:Position, direction:Direction) -> u32 {
+    if VERBOSE {println!("at pos {:?} is {:?}", pos, map.at(pos));}
+    assert!(map.at(pos) == Box);
+    let behind_pos = map.area.step(pos, direction).unwrap();
+    let box_count_behind =
+    match map.at(behind_pos) {
+        Space => { 0 },
+        Box => { move_box(map, behind_pos, direction) },
+        other => { panic!("Unexpected {:?} at {:?}", other, behind_pos)}
+    };
+    map.set_at(behind_pos, Box);
+    map.set_at(pos, Space);
+    box_count_behind + 1
+}
+
 fn read_input<'a>(map_lines:impl Iterator<Item=&'a str>, directions_lines:&str) -> Puzzle {
     let map = PixelMap::from_strings(map_lines);
     let moves = directions_lines.chars().map(|c| Direction::from_char(c)).collect();
@@ -95,8 +125,8 @@ fn convert_to_part2(puzzle:&Puzzle) -> Puzzle {
 fn execute_moves(puzzle:&Puzzle) -> Map {
     let mut map = puzzle.map.clone();
     let mut current_pos = extract_start_pos(&mut map);
-    for direction in &puzzle.moves {
-        let next_pos = map.area.step(current_pos, *direction).unwrap();
+    for &direction in &puzzle.moves {
+        let next_pos = map.area.step(current_pos, direction).unwrap();
         match map.at(next_pos) {
             Space => {
                 if VERBOSE {println!("Move {:?} to {:?}", direction, next_pos);}
@@ -106,17 +136,10 @@ fn execute_moves(puzzle:&Puzzle) -> Map {
                 if VERBOSE {println!("Cannot move {:?}", direction);}
             }
             Box   => {
-                // we can move multiple boxes
-                let mut behind_boxes_pos = next_pos;
-                while map.at(behind_boxes_pos) == Box {
-                    behind_boxes_pos = map.area.step(behind_boxes_pos, *direction).unwrap();
-                }
-                if map.at(behind_boxes_pos) == Space {
-                    // move box
-                    map.set_at(behind_boxes_pos, Box);
-                    map.set_at(next_pos, Space);
+                if puzzle.can_move_box(next_pos, direction) {
+                    let boxes_moved = move_box(&mut map, next_pos, direction);
                     current_pos = next_pos;
-                    if VERBOSE {println!("Move box {:?} to {:?}", direction, behind_boxes_pos);}
+                    if VERBOSE {println!("Move {} boxes at {:?} {:?}", boxes_moved, next_pos, direction);}
                 } else {
                     if VERBOSE {println!("Cannot move box {:?}", direction);}
                 }
