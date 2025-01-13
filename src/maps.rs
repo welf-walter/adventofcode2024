@@ -177,9 +177,9 @@ pub struct PixelMap<E:FromChar> {
 }
 
 impl<E:FromChar+Copy+PartialEq> PixelMap<E> {
-    #[cfg(test)]
+
     pub fn width(&self) -> usize { self.area.width }
-    #[cfg(test)]
+
     pub fn height(&self) -> usize { self.area.height }
 
     pub fn at(&self, position:Position) -> E {

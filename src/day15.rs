@@ -15,7 +15,10 @@ enum MapElement {
     Space,
     Wall,
     Box,
-    Robot
+    BoxLeft,
+    BoxRight,
+    Robot,
+    Unknown
 }
 
 use MapElement::*;
@@ -27,6 +30,8 @@ impl crate::maps::FromChar for MapElement {
             '.' => Space,
             '#' => Wall,
             'O' => Box,
+            '[' => BoxLeft,
+            ']' => BoxRight,
             '@' => Robot,
             _ => panic!("Unexpected character {} for TestEnum", c)
         }
@@ -39,7 +44,10 @@ impl crate::maps::ToChar for MapElement {
             Space => '.',
             Wall => '#',
             Box => 'O',
-            Robot => '@'
+            BoxLeft => '[',
+            BoxRight => ']',
+            Robot => '@',
+            Unknown => '?'
         }
     }
 }
@@ -59,13 +67,29 @@ fn read_input<'a>(map_lines:impl Iterator<Item=&'a str>, directions_lines:&str) 
 
 // extract robot start position and replace with Space
 fn extract_start_pos(map:&mut Map) -> Position {
-    for pos in map.area.all_positions() {
-        if map.at(pos) == Robot {
-            map.set_at(pos, Space);
-            return pos;
-        }
+    if let Some(pos) = map.find_first(Robot) {
+        map.set_at(pos, Space);
+        return pos;
+    } else {
+        panic!("Could not find start position");
     }
-    panic!("Could not find start position");
+}
+
+fn convert_to_part2(puzzle:&Puzzle) -> Puzzle {
+    let     map = &puzzle.map;
+    let mut map2 = PixelMap::new(map.width() * 2, map.height(),Unknown);
+    for pos in map.area.all_positions() {
+        let (element1,element2) = match map.at(pos) {
+            Wall  => (Wall, Wall),
+            Box   => (BoxLeft, BoxRight),
+            Space => (Space, Space),
+            Robot => (Robot, Space),
+            other     => { panic!("Unexpected {:?} at {:?}", other, pos) }
+        };
+        map2.set_at((pos.0 * 2    ,pos.1), element1);
+        map2.set_at((pos.0 * 2 + 1,pos.1), element2);
+    }
+    Puzzle { map:map2, moves:puzzle.moves.clone() }
 }
 
 fn execute_moves(puzzle:&Puzzle) -> Map {
@@ -138,6 +162,9 @@ fn test_puzzle1()
     assert_eq!(start_pos, (2,2));
     let final_map = execute_moves(&puzzle1);
     assert_eq!(get_gps(&final_map), 2028);
+
+    let puzzle1_2 = convert_to_part2(&puzzle1);
+    assert_eq!(puzzle1_2.map.pixels[2], vec![Wall, Wall, Wall, Wall, Robot, Space, Space, Space, BoxLeft, BoxRight, Space, Space, Space, Space, Wall, Wall]);
 }
 
 #[cfg(test)]
@@ -190,4 +217,6 @@ pub fn puzzle() {
     let gps = get_gps(&final_map);
 
     println!("Day 15, Part 1: GPS after moving is {}", gps);
+
+    let _puzzle2 = convert_to_part2(&puzzle);
 }
