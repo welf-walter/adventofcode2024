@@ -5,7 +5,6 @@ use crate::maps::PixelMap;
 
 #[cfg(test)]
 use crate::helper::split_input_sections;
-#[cfg(test)]
 use crate::maps::Direction::*;
 
 const VERBOSE:bool = true;
@@ -59,31 +58,106 @@ struct Puzzle {
     moves:Vec<Direction>
 }
 
+fn other_side_of_box(myself:MapElement, pos:Position) -> Position {
+    match myself {
+        BoxLeft  => (pos.0 + 1, pos.1),
+        BoxRight => (pos.0 - 1, pos.1),
+        _ => unreachable!()
+    }
+}
+
 fn can_move_box(map:&Map, pos:Position, direction:Direction) -> bool {
-    assert!(map.at(pos) == Box);
-    let behind_pos = map.area.step(pos, direction).unwrap();
-    match map.at(behind_pos) {
+    let myself = map.at(pos);
+    if VERBOSE { println!("  Can I move {:?} at {:?} to {:?}?", myself, pos, direction)}
+    assert!(myself == Box || myself == BoxLeft || myself == BoxRight );
+    let behind_pos = match (myself, direction) {
+        (BoxRight, Left) |  // []@
+        (BoxLeft, Right) => // @[]
+            map.area.step(map.area.step(pos, direction).unwrap(), direction).unwrap(),
+        _ => map.area.step(pos, direction).unwrap()
+    };
+    let behind = map.at(behind_pos);
+    match behind {
         Wall => { return false },
         Space => { return true },
         Box => { return can_move_box(map, behind_pos, direction) },
+        BoxLeft | BoxRight => {
+            match (myself, direction, behind) {
+                // [][]
+                //  []
+                //   @
+                (BoxLeft, Up, BoxRight) |
+                (BoxLeft, Down, BoxRight) |
+                (BoxRight, Up, BoxLeft) |
+                (BoxRight, Down, BoxLeft) => {
+                    let behind_pos_other = map.area.step(other_side_of_box(myself, pos), direction).unwrap();
+                    return can_move_box(map, behind_pos, direction) && can_move_box(map, behind_pos_other, direction);
+                }
+                _ => { return can_move_box(map, behind_pos, direction); }
+            }
+        },
         other => { panic!("Unexpected {:?} at {:?}", other, behind_pos)}
     }
 }
 
 // return number of boxes
 fn move_box(map:&mut Map, pos:Position, direction:Direction) -> u32 {
-    assert!(map.at(pos) == Box);
+    let myself = map.at(pos);
+    if VERBOSE { println!("  Can I move {:?} at {:?} to {:?}?", myself, pos, direction)}
+    assert!(myself == Box || myself == BoxLeft || myself == BoxRight );
     assert!(can_move_box(map, pos, direction));
-    let behind_pos = map.area.step(pos, direction).unwrap();
+    let behind_pos = match (myself, direction) {
+        (BoxRight, Left) |  // []@
+        (BoxLeft, Right) => // @[]
+            map.area.step(map.area.step(pos, direction).unwrap(), direction).unwrap(),
+        _ => map.area.step(pos, direction).unwrap()
+    };
+    let behind = map.at(behind_pos);
     let box_count_behind =
     match map.at(behind_pos) {
         Space => { 0 },
         Box => { move_box(map, behind_pos, direction) },
+        BoxLeft | BoxRight => {
+            match (myself, direction, behind) {
+                // [][]
+                //  []
+                //   @
+                (BoxLeft, Up, BoxRight) |
+                (BoxLeft, Down, BoxRight) |
+                (BoxRight, Up, BoxLeft) |
+                (BoxRight, Down, BoxLeft) => {
+                    let behind_pos_other = map.area.step(other_side_of_box(myself, pos), direction).unwrap();
+                    move_box(map, behind_pos, direction) +
+                    move_box(map, behind_pos_other, direction)
+                },
+                _ => { move_box(map, behind_pos, direction) }
+            }
+        },
         other => { panic!("Unexpected {:?} at {:?}", other, behind_pos)}
     };
-    map.set_at(behind_pos, Box);
-    map.set_at(pos, Space);
+    match myself {
+        Box => {
+            map.set_at(behind_pos, Box);
+            map.set_at(pos, Space);
+        },
+        BoxLeft | BoxRight => {
+            let pos_other = other_side_of_box(myself, pos);
+            let new_pos = map.area.step(pos, direction).unwrap();
+            let new_pos_other = map.area.step(pos_other, direction).unwrap();
+            let other = match myself {
+                BoxLeft => BoxRight,
+                BoxRight => BoxLeft,
+                _ => unreachable!()
+            };
+            map.set_at(pos, Space);
+            map.set_at(pos_other, Space);
+            map.set_at(new_pos, myself);
+            map.set_at(new_pos_other, other);
+        },
+        _ => unreachable!()
+    };
     box_count_behind + 1
+
 }
 
 fn read_input<'a>(map_lines:impl Iterator<Item=&'a str>, directions_lines:&str) -> Puzzle {
@@ -132,7 +206,7 @@ fn execute_moves(puzzle:&Puzzle) -> Map {
             Wall  => {
                 if VERBOSE {println!("Cannot move {:?}", direction);}
             }
-            Box   => {
+            Box | BoxLeft | BoxRight   => {
                 if can_move_box(&map, next_pos, direction) {
                     let boxes_moved = move_box(&mut map, next_pos, direction);
                     current_pos = next_pos;
@@ -143,6 +217,7 @@ fn execute_moves(puzzle:&Puzzle) -> Map {
             },
             _ => unreachable!()
         }
+        if VERBOSE {map.println();}
     }
     map
 }
@@ -220,6 +295,31 @@ fn test_puzzle2()
     let final_map = execute_moves(&puzzle);
     if VERBOSE { final_map.println(); }
     assert_eq!(get_gps(&final_map), 10092);
+}
+
+#[cfg(test)]
+fn input3() -> &'static str {
+"#######
+#...#.#
+#.....#
+#..OO@#
+#..O..#
+#.....#
+#######
+
+<vv<<^^<<^^"
+}
+
+#[test]
+fn test_puzzle3()
+{
+    let sections = split_input_sections::<2>(input3());
+    let puzzle1 = read_input(sections[0].split('\n'), &sections[1].replace("\n",""));
+    let puzzle2 = convert_to_part2(&puzzle1);
+    if VERBOSE { puzzle2.map.println(); }
+    let final_map = execute_moves(&puzzle2);
+    if VERBOSE { final_map.println(); }
+    assert_eq!(get_gps(&final_map), 105);
 }
 
 //////////////////////////////////////////
