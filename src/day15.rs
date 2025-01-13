@@ -59,24 +59,21 @@ struct Puzzle {
     moves:Vec<Direction>
 }
 
-impl Puzzle {
-    fn can_move_box(&self, pos:Position, direction:Direction) -> bool {
-        assert!(self.map.at(pos) == Box);
-        let behind_pos = self.map.area.step(pos, direction).unwrap();
-        match self.map.at(behind_pos) {
-            Wall => { return false },
-            Space => { return true },
-            Box => { return self.can_move_box(behind_pos, direction) },
-            other => { panic!("Unexpected {:?} at {:?}", other, behind_pos)}
-        }
+fn can_move_box(map:&Map, pos:Position, direction:Direction) -> bool {
+    assert!(map.at(pos) == Box);
+    let behind_pos = map.area.step(pos, direction).unwrap();
+    match map.at(behind_pos) {
+        Wall => { return false },
+        Space => { return true },
+        Box => { return can_move_box(map, behind_pos, direction) },
+        other => { panic!("Unexpected {:?} at {:?}", other, behind_pos)}
     }
-
 }
 
 // return number of boxes
 fn move_box(map:&mut Map, pos:Position, direction:Direction) -> u32 {
-    if VERBOSE {println!("at pos {:?} is {:?}", pos, map.at(pos));}
     assert!(map.at(pos) == Box);
+    assert!(can_move_box(map, pos, direction));
     let behind_pos = map.area.step(pos, direction).unwrap();
     let box_count_behind =
     match map.at(behind_pos) {
@@ -136,7 +133,7 @@ fn execute_moves(puzzle:&Puzzle) -> Map {
                 if VERBOSE {println!("Cannot move {:?}", direction);}
             }
             Box   => {
-                if puzzle.can_move_box(next_pos, direction) {
+                if can_move_box(&map, next_pos, direction) {
                     let boxes_moved = move_box(&mut map, next_pos, direction);
                     current_pos = next_pos;
                     if VERBOSE {println!("Move {} boxes at {:?} {:?}", boxes_moved, next_pos, direction);}
