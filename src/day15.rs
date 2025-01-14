@@ -77,26 +77,28 @@ fn can_move_box(map:&Map, pos:Position, direction:Direction) -> bool {
         _ => map.area.step(pos, direction).unwrap()
     };
     let behind = map.at(behind_pos);
-    match behind {
-        Wall => { return false },
-        Space => { return true },
-        Box => { return can_move_box(map, behind_pos, direction) },
-        BoxLeft | BoxRight => {
-            match (myself, direction, behind) {
-                // [][]
-                //  []
-                //   @
-                (BoxLeft, Up, BoxRight) |
-                (BoxLeft, Down, BoxRight) |
-                (BoxRight, Up, BoxLeft) |
-                (BoxRight, Down, BoxLeft) => {
-                    let behind_pos_other = map.area.step(other_side_of_box(myself, pos), direction).unwrap();
-                    return can_move_box(map, behind_pos, direction) && can_move_box(map, behind_pos_other, direction);
-                }
-                _ => { return can_move_box(map, behind_pos, direction); }
-            }
+
+    match (myself, direction, behind) {
+        (Box,_,Wall) => { return false },
+        (Box,_,Space) => { return true },
+        (Box,_,Box) => { return can_move_box(map, behind_pos, direction) },
+        (_, Right, Wall) |
+        (_, Left, Wall) => { return false },
+        (_, Right, Space) |
+        (_, Left, Space) => { return true },
+        // @[]
+        (BoxLeft, Right, BoxLeft) |
+        // []@
+        (BoxRight, Left, BoxRight) => { return can_move_box(map, behind_pos, direction) },
+        // [][]
+        //  []
+        //   @
+        (_, Up, _) |
+        (_, Down, _) => {
+            let behind_pos_other = map.area.step(other_side_of_box(myself, pos), direction).unwrap();
+            return can_move_box(map, behind_pos, direction) && can_move_box(map, behind_pos_other, direction);
         },
-        other => { panic!("Unexpected {:?} at {:?}", other, behind_pos)}
+        other => { panic!("Unexpected {:?} at {:?}", other, pos)}
     }
 }
 
