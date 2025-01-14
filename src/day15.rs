@@ -7,7 +7,7 @@ use crate::maps::PixelMap;
 use crate::helper::split_input_sections;
 use crate::maps::Direction::*;
 
-const VERBOSE:bool = true;
+const VERBOSE:bool = false;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum MapElement {
@@ -338,5 +338,11 @@ pub fn puzzle() {
 
     println!("Day 15, Part 1: GPS after moving is {}", gps);
 
-    let _puzzle2 = convert_to_part2(&puzzle);
+    let puzzle2 = convert_to_part2(&puzzle);
+
+    let final_map2 = execute_moves(&puzzle2);
+    let gps2 = get_gps(&final_map2);
+
+    println!("Day 15, Part 2: GPS after moving is {}", gps2);
+
 }
