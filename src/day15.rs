@@ -217,7 +217,8 @@ fn execute_moves(puzzle:&Puzzle) -> Map {
 fn get_gps(map:&Map) -> usize {
     let mut gps = 0;
     for pos in map.area.all_positions() {
-        if map.at(pos) == Box {
+        let pixel = map.at(pos);
+        if  pixel == Box || pixel == BoxLeft {
             gps += pos.0 + pos.1 * 100;
         }
     }
@@ -311,7 +312,7 @@ fn test_puzzle3()
     if VERBOSE { puzzle2.map.println(); }
     let final_map = execute_moves(&puzzle2);
     if VERBOSE { final_map.println(); }
-    assert_eq!(get_gps(&final_map), 105);
+    assert_eq!(get_gps(&final_map), 105 + 207 + 306);
 }
 
 //////////////////////////////////////////
