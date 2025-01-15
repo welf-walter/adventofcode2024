@@ -28,66 +28,90 @@ pub trait Problem {
 // not there means infinite
 type CostCache<State> = HashMap<State,Cost>;
 
-// from an unordered list of states, extract one with minimal cost
-fn extract_cheapest_state<State:Hash+Eq>(backlog:&mut Vec<State>, cost_cache:&CostCache<State>) -> (State, Cost) {
-    let min_cost = backlog.iter().map(|state| *cost_cache.get(state).unwrap()).min().unwrap();
-    let min_index = backlog.iter().position(|state| *cost_cache.get(state).unwrap() == min_cost).unwrap();
-    let state = backlog.swap_remove(min_index);
-    (state, min_cost)
+struct ProblemSolver<'p, P:Problem> {
+    problem:&'p P,
+    start_state:P::State,
+    cost_cache:CostCache<P::State>
+}
+
+impl<P:Problem> ProblemSolver<'_, P> {
+
+    fn new(problem:&P, start_state:P::State) -> ProblemSolver<P> {
+        ProblemSolver { problem, start_state, cost_cache:CostCache::new() }
+    }
+
+    // from an unordered list of states, extract one with minimal cost
+    fn extract_cheapest_state(&self, backlog:&mut Vec<P::State>) -> (P::State, Cost) {
+        let min_cost = backlog.iter().map(|state| *self.cost_cache.get(state).unwrap()).min().unwrap();
+        let min_index = backlog.iter().position(|state| *self.cost_cache.get(state).unwrap() == min_cost).unwrap();
+        let state = backlog.swap_remove(min_index);
+        (state, min_cost)
+    }
+
+    fn find_best_path_to_end(&mut self) -> Option<(/* endstate: */P::State, /* cost: */Cost)> where <P as Problem>::Action: 'static {
+
+        // these states are to investigate
+        let mut backlog:Vec<P::State> = Vec::new();
+
+        self.cost_cache.insert(self.start_state, 0);
+        backlog.push(self.start_state);
+
+        // recursion termination at start point
+        if self.problem.is_end_state(&self.start_state)  {
+            if VERBOSE { println!("Terminated at start");}
+            return Some((self.start_state, 0));
+        }
+
+        while backlog.len() > 0 {
+            // extract element with minimum cost
+            let (state, current_cost) = self.extract_cheapest_state(&mut backlog);
+            if VERBOSE { println!("Handle {:?} with cost = {}", state, current_cost);}
+
+            for &action in P::Action::all_actions() {
+                if VERBOSE { println!("  try to do {:?}", action);}
+                if let Some(after) = self.problem.execute_action(state, action) {
+                    let cost_this_way = action.cost() + current_cost;
+
+                    // recursion termination
+                    if self.problem.is_end_state(&after) {
+                        if VERBOSE { println!("Terminated");}
+                        // not yet implemented in a generic way
+                        //if VERBOSE { self.print_cache(cache);}
+                        return Some((after, cost_this_way));
+                    }
+
+                    if let Some(&best_cost_up_to_now) = self.cost_cache.get(&after) {
+                        if cost_this_way < best_cost_up_to_now {
+                            self.cost_cache.insert(after, cost_this_way);
+                            if VERBOSE { println!("  better cost for {:?}: {} < {}", after, cost_this_way, best_cost_up_to_now)}
+                            backlog.push(after);
+                        }
+                    } else {
+                        self.cost_cache.insert(after, cost_this_way);
+                        if VERBOSE { println!("  cost for {:?}: {}", after, cost_this_way)}
+                        backlog.push(after);
+                    }
+                }
+            }
+        }
+
+        return None;
+    }
 }
 
 // find one path with lowest cost to an end state
 pub fn get_cost_of_state<P:Problem>(problem:&P, start_state:P::State) -> Cost where <P as Problem>::Action: 'static {
 
-    // these states are to investigate
-    let mut backlog:Vec<P::State> = Vec::new();
-    let mut cost_cache:CostCache<P::State> = HashMap::new();
+    let mut solver = ProblemSolver::new(problem, start_state);
 
-    cost_cache.insert(start_state, 0);
-    backlog.push(start_state);
-
-    // recursion termination at start point
-    if problem.is_end_state(&start_state)  {
-        if VERBOSE { println!("Terminated at start");}
-        return 0;
-    }
-
-    while backlog.len() > 0 {
-        // extract element with minimum cost
-        let (state, current_cost) = extract_cheapest_state(&mut backlog, &cost_cache);
-        if VERBOSE { println!("Handle {:?} with cost = {}", state, current_cost);}
-
-        for &action in P::Action::all_actions() {
-            if VERBOSE { println!("  try to do {:?}", action);}
-            if let Some(after) = problem.execute_action(state, action) {
-                let cost_this_way = action.cost() + current_cost;
-
-                // recursion termination
-                if problem.is_end_state(&after) {
-                    if VERBOSE { println!("Terminated");}
-                    // not yet implemented in a generic way
-                    //if VERBOSE { self.print_cache(cache);}
-                    return cost_this_way;
-                }
-
-                if let Some(&best_cost_up_to_now) = cost_cache.get(&after) {
-                    if cost_this_way < best_cost_up_to_now {
-                        cost_cache.insert(after, cost_this_way);
-                        if VERBOSE { println!("  better cost for {:?}: {} < {}", after, cost_this_way, best_cost_up_to_now)}
-                        backlog.push(after);
-                    }
-                } else {
-                    cost_cache.insert(after, cost_this_way);
-                    if VERBOSE { println!("  cost for {:?}: {}", after, cost_this_way)}
-                    backlog.push(after);
-                }
-            }
+    match solver.find_best_path_to_end() {
+        Some((_, cost)) => cost,
+        None => {
+            if VERBOSE { println!("Did not find any path to the end from {:?}", start_state); }
+            u32::MAX
         }
     }
-
-    if VERBOSE { println!("Did not find any path to the end from {:?}", start_state); }
-    u32::MAX
-    }
+}
 
 
 #[cfg(test)]
