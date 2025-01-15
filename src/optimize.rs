@@ -113,11 +113,22 @@ pub fn get_cost_of_state<P:Problem>(problem:&P, start_state:P::State) -> Cost wh
     }
 }
 
+#[cfg(test)]
+pub fn get_cost_cache<P:Problem>(problem:&P, start_state:P::State) -> CostCache<P::State> where <P as Problem>::Action: 'static {
+
+    let mut solver = ProblemSolver::new(problem, start_state);
+
+    solver.find_best_path_to_end();
+
+    solver.cost_cache.clone()
+
+}
+
 
 #[cfg(test)]
 mod test {
 
-use crate::optimize::{get_cost_of_state, Problem};
+use crate::optimize::{get_cost_cache, get_cost_of_state, Problem};
 
 use super::ActionTrait;
 
@@ -173,6 +184,12 @@ fn test_actions() {
     assert_eq!(TestAction::Decrement.cost(), 1);
     // expected best solution: Double/Increment, Double, Double, Double, Decrement
     assert_eq!(get_cost_of_state(&problem, TestState{value:1}), 5);
+
+    let cost_cache = get_cost_cache(&problem, TestState{value:1});
+    assert_eq!(cost_cache.get(&TestState{value:1}), Some(&0));
+    assert_eq!(cost_cache.get(&TestState{value:2}), Some(&1));
+    assert_eq!(cost_cache.get(&TestState{value:3}), Some(&2));
+    assert_eq!(cost_cache.get(&TestState{value:4}), Some(&2));
 }
 
 }
