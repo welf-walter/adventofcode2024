@@ -230,4 +230,5 @@ pub fn puzzle() {
     let costs = get_cost_of_state(&puzzle, puzzle.get_start_state());
 
     println!("Day 16, Part 1: Lowest score to move from Start to End is {}", costs);
+    println!("Day 16, Part 2: Number of tiles part of any best path is {}", count_tiles_which_are_part_of_any_best_path(&puzzle));
 }
