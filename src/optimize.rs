@@ -77,7 +77,7 @@ impl<P:Problem> ProblemSolver<'_, P> {
 
                     // recursion termination
                     if self.problem.is_end_state(&after) {
-                        if VERBOSE { println!("Terminated");}
+                        if VERBOSE { println!("Terminated at {:?} with cost of {}", after, cost_this_way);}
                         // not yet implemented in a generic way
                         //if VERBOSE { self.print_cache(cache);}
                         return Some((after, cost_this_way));
@@ -169,6 +169,24 @@ impl<P:Problem> ProblemSolver<'_, P> {
         // convert hash map to vector
         end_states.iter().map(|(&state,&cost)|(state,cost)).collect::<Vec<(/* endstate: */P::State, /* cost: */Cost)>>()
     }
+
+    fn get_best_cached_paths_to(&self, state:P::State) -> Vec<Vec<P::Action>> {
+        if state == self.start_state {
+            return vec![Vec::new()];
+        }
+        let mut paths = Vec::new();
+        let predecessors = self.best_predecessors.get(&state).unwrap();
+        for &(predecessor,action) in predecessors {
+            let paths_to_now = self.get_best_cached_paths_to(predecessor);
+            for path_to_now in paths_to_now {
+                let mut new_path = path_to_now.clone();
+                new_path.push(action);
+                paths.push(new_path);
+            }
+        }
+        if VERBOSE { println!("Best cached paths to {:?} are {:?}", state, paths);}
+        paths
+    }
 }
 
 // find one path with lowest cost to an end state
@@ -196,11 +214,39 @@ pub fn get_cost_cache<P:Problem>(problem:&P, start_state:P::State) -> CostCache<
 
 }
 
+// find all paths with lowest cost to an end state
+pub fn get_all_best_paths<P:Problem>(problem:&P, start_state:P::State) -> Vec<Vec<P::Action>> where <P as Problem>::Action: 'static {
+
+    let mut solver1 = ProblemSolver::new(problem, start_state);
+
+    let min_cost_to_end = match solver1.find_best_path_to_end() {
+        Some((_, cost)) => cost,
+        None => {
+            if VERBOSE { println!("Did not find any path to the end from {:?}", start_state); }
+            return Vec::new();
+        }
+    };
+
+    let mut paths = Vec::new();
+
+    let mut solver2 = ProblemSolver::new(problem, start_state);
+    let end_states = solver2.find_all_best_path_to_end_states(min_cost_to_end);
+    for (end_state, cost_to_this_end) in end_states {
+        assert_eq!(cost_to_this_end, min_cost_to_end);
+        let mut paths_to_this_end_state = solver2.get_best_cached_paths_to(end_state);
+        if VERBOSE { println!("Add {} paths for end state {:?}", paths_to_this_end_state.len(), end_state); }
+        paths.append(&mut paths_to_this_end_state);
+    }
+
+    paths
+
+}
+
 
 #[cfg(test)]
 mod test {
 
-use crate::optimize::{get_cost_cache, get_cost_of_state, Problem, ProblemSolver};
+use crate::optimize::{get_all_best_paths, get_cost_cache, get_cost_of_state, Problem, ProblemSolver};
 
 use super::ActionTrait;
 
@@ -284,6 +330,13 @@ fn test_all_paths() {
     assert_eq!(solver.best_predecessors.get(&TestState{value:4}).unwrap(),&vec![(TestState{value:2}, TestAction::Double)]);
     assert_eq!(solver.cost_cache.get(&TestState{value:5}).unwrap(),&3);
     assert_eq!(solver.best_predecessors.get(&TestState{value:5}).unwrap(),&vec![(TestState{value:4}, TestAction::Increment)]);
+
+    let all_best_path = get_all_best_paths(&problem, TestState{value:1});
+    assert_eq!(all_best_path, vec![
+           vec![TestAction::Double, TestAction::Double, TestAction::Increment],
+            vec![TestAction::Increment, TestAction::Double, TestAction::Increment]
+        ]);
+
 }
 
 }
