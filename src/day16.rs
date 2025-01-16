@@ -1,5 +1,8 @@
+use std::collections::HashSet;
+
 use crate::maps::Position;
 use crate::maps::Direction;
+use crate::optimize::get_all_best_paths;
 use Direction::*;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -128,6 +131,22 @@ impl Problem for Puzzle {
 
 }
 
+fn count_tiles_which_are_part_of_any_best_path(puzzle:&Puzzle) -> usize {
+    let best_paths = get_all_best_paths(puzzle, puzzle.get_start_state());
+    let mut relevant_positions : HashSet<Position> = HashSet::new();
+    for path in best_paths {
+        let mut state = puzzle.get_start_state();
+        relevant_positions.insert(state.0);
+        for action in path {
+            state = puzzle.execute_action(state, action).unwrap();
+            relevant_positions.insert(state.0);
+        }
+    }
+
+    relevant_positions.len()
+
+}
+
 #[test]
 fn test_puzzle1() {
     let input=
@@ -167,6 +186,8 @@ fn test_puzzle1() {
 
     assert_eq!(get_cost_of_state(&puzzle, puzzle.get_start_state()), 7036);
 
+    assert_eq!(count_tiles_which_are_part_of_any_best_path(&puzzle), 45);
+
 }
 
 #[test]
@@ -193,6 +214,8 @@ fn test_puzzle2() {
 
     assert_eq!(get_cost_of_state(&puzzle, ((15,1),Right)), 0);
     assert_eq!(get_cost_of_state(&puzzle, puzzle.get_start_state()), 11048);
+
+    assert_eq!(count_tiles_which_are_part_of_any_best_path(&puzzle), 64);
 
 }
 
