@@ -128,6 +128,20 @@ fn run_program(program:&Program, inital_state:ComputerState) -> Output {
     }
 }
 
+fn program_from_vec(vec:Vec<Register>) -> Program {
+    let mut j = vec.into_iter();
+    let mut program:Program = Program::new();
+    loop {
+        if let Some(opcode) = j.next() {
+            let operand = j.next().unwrap();
+            let opcode = Opcode::from_int(opcode);
+            program.push((opcode,operand));
+        } else {
+            return program;
+        }
+    }
+}
+
 // str like "0,1,5,4,3,0"
 fn program_from_str(str:&str) -> Program {
     let mut j = str.split(',');
@@ -183,4 +197,20 @@ fn test_example1() {
     let (state,program) = read_input(input.split('\n'));
     assert_eq!(state, ComputerState{a:729, b:0, c:0, ip:0});
     assert_eq!(program, vec![(ADV, 1), (OUT, 4), (JNZ, 0)]);
+}
+
+//////////////////////////////////////////
+/// Puzzle
+//////////////////////////////////////////
+
+pub fn puzzle() {
+    let lines = crate::helper::read_file("input/day17.txt");
+    let (initial_state,program1) = read_input(lines.iter().map(|line| line.as_str()));
+
+    let output1 = run_program(&program1, initial_state.clone());
+    let program2 = program_from_vec(output1);
+    let output2 = run_program(&program2, initial_state);
+    let output2_str = output2.iter().map(|&i| i.to_string()).collect::<Vec<_>>();
+
+    println!("Day 16, Part 1: Output of generated program is {}", output2_str.join(","));
 }
