@@ -207,10 +207,15 @@ pub fn puzzle() {
     let lines = crate::helper::read_file("input/day17.txt");
     let (initial_state,program1) = read_input(lines.iter().map(|line| line.as_str()));
 
+    if VERBOSE {println!("Day 16, Debug program = {:?}", program1);}
     let output1 = run_program(&program1, initial_state.clone());
+    let output1_str = output1.iter().map(|&i| i.to_string()).collect::<Vec<_>>();
+    if VERBOSE {println!("Day 16, Output of debug program is {:?}", output1_str.join(","));}
     let program2 = program_from_vec(output1);
+    if VERBOSE {println!("Day 16, Generated program = {:?}", program2);}
     let output2 = run_program(&program2, initial_state);
     let output2_str = output2.iter().map(|&i| i.to_string()).collect::<Vec<_>>();
+
 
     println!("Day 16, Part 1: Output of generated program is {}", output2_str.join(","));
 }
