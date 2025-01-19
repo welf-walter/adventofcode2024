@@ -253,8 +253,8 @@ fn test_example2() {
 
     assert!(is_program_cloning_itself(117440, &program));
 
-//    let a = find_first_cloning_a(&program);
-//    assert_eq!(a, 117440);
+    let a = find_first_cloning_a(&program);
+    assert_eq!(a, 117440);
 
 }
 
