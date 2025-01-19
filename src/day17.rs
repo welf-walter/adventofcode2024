@@ -135,6 +135,27 @@ fn run_program(program:&Program, inital_state:ComputerState) -> Output {
     }
 }
 
+fn run_program_check_output(program:&Program, inital_state:ComputerState, expected_output:Output) -> bool {
+    let mut state = inital_state.clone();
+    let mut output_iter = expected_output.iter();
+    loop {
+        if VERBOSE { println!("State: {:?}", state);}
+        if state.ip >= program.len() {
+            let is_all_expected_consumed = output_iter.next().is_none();
+            return is_all_expected_consumed;
+        }
+        let (opcode, operand) = program[state.ip];
+        if let Some(output) = state.execute_instruction(opcode, operand) {
+            if let Some(&expected_output) = output_iter.next() {
+                if expected_output != output {
+                    return false;
+                }
+            }
+        }
+    }
+}
+
+
 fn program_from_vec(vec:Vec<Register>) -> Option<Program> {
     let mut j = vec.into_iter();
     let mut program:Program = Program::new();
@@ -239,10 +260,12 @@ fn test_example1() {
     assert_eq!(state, ComputerState{a:729, b:0, c:0, ip:0});
     assert_eq!(program, vec![(ADV, 1), (OUT, 4), (JNZ, 0)]);
 
-    let output = run_program(&program, state);
+    let output = run_program(&program, state.clone());
     if VERBOSE {println!("Output: {:?}", output);}
     assert_eq!(output, vec![4,6,3,5,6,3,5,2,1,0]);
     assert_eq!(output_to_string(&output), "4,6,3,5,6,3,5,2,1,0");
+
+    assert!(run_program_check_output(&program, state, vec![4,6,3,5,6,3,5,2,1,0]));
 }
 
 #[test]
@@ -252,6 +275,9 @@ fn test_example2() {
     let (_state,program) = read_input(input.split('\n'));
 
     assert!(is_program_cloning_itself(117440, &program));
+
+    let state2 = ComputerState{a:117440, b:0, c:0, ip:0};
+    assert!(run_program_check_output(&program, state2, vec![0,3,5,4,3,0]));
 
     let a = find_first_cloning_a(&program);
     assert_eq!(a, 117440);
