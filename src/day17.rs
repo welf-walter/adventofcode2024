@@ -40,6 +40,20 @@ impl Opcode {
             other => panic!("unexpected opcode {}", other)
         }
     }
+
+    fn to_int(self) -> u32 {
+        match self {
+             ADV => 0,
+             BXL => 1,
+             BST => 2,
+             JNZ => 3,
+             BXC => 4,
+             OUT => 5,
+             BDV => 6,
+             CDV => 7
+        }
+    }
+
 }
 
 type Operand = u32;
@@ -172,6 +186,15 @@ fn program_from_vec(vec:Vec<Register>) -> Option<Program> {
     }
 }
 
+fn program_to_vec(program:&Program) -> Vec<Register> {
+    let mut result = Vec::new();
+    for &(opcode,operand) in program {
+        result.push(opcode.to_int());
+        result.push(operand);
+    }
+    result
+}
+
 // str like "0,1,5,4,3,0"
 fn program_from_str(str:&str) -> Program {
     let mut j = str.split(',');
@@ -214,15 +237,8 @@ fn read_input<'a>(lines:impl Iterator<Item=&'a str> + Clone) -> (ComputerState, 
 
 fn is_program_cloning_itself(a:Register, program:&Program) -> bool {
     let state = ComputerState{a, b:0, c:0, ip:0};
-    let output = run_program(&program, state);
-    if VERBOSE {println!("Output: {:?}", output);}
-    if let Some(generated_program) = program_from_vec(output) {
-        if VERBOSE { println!("generated program: {:?}", program)}
-        generated_program == *program
-    } else {
-        if VERBOSE { println!("could not generate program")}
-        false
-    }
+    let expected_output = program_to_vec(program);
+    run_program_check_output(&program, state, expected_output)
 }
 
 fn find_first_cloning_a(program:&Program) -> Register {
