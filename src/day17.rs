@@ -1,4 +1,4 @@
-const VERBOSE : bool = false;
+const VERBOSE : bool = true;
 
 type Register = u32;
 
@@ -21,6 +21,8 @@ enum Opcode {
     BDV,
     CDV
 }
+
+use core::panic;
 
 use Opcode::*;
 
@@ -133,16 +135,18 @@ fn run_program(program:&Program, inital_state:ComputerState) -> Output {
     }
 }
 
-fn program_from_vec(vec:Vec<Register>) -> Program {
+fn program_from_vec(vec:Vec<Register>) -> Option<Program> {
     let mut j = vec.into_iter();
     let mut program:Program = Program::new();
     loop {
         if let Some(opcode) = j.next() {
-            let operand = j.next().unwrap();
+            let operando = j.next();
+            if operando.is_none() { return None; }
+            let operand = operando.unwrap();
             let opcode = Opcode::from_int(opcode);
             program.push((opcode,operand));
         } else {
-            return program;
+            return Some(program);
         }
     }
 }
@@ -187,6 +191,29 @@ fn read_input<'a>(lines:impl Iterator<Item=&'a str> + Clone) -> (ComputerState, 
     (ComputerState{a:register_a, b:register_b, c:register_c, ip:0}, program)
 }
 
+fn is_program_cloning_itself(a:Register, program:&Program) -> bool {
+    let state = ComputerState{a, b:0, c:0, ip:0};
+    let output = run_program(&program, state);
+    if VERBOSE {println!("Output: {:?}", output);}
+    if let Some(generated_program) = program_from_vec(output) {
+        if VERBOSE { println!("generated program: {:?}", program)}
+        generated_program == *program
+    } else {
+        if VERBOSE { println!("could not generate program")}
+        false
+    }
+}
+
+fn find_first_cloning_a(program:&Program) -> Register {
+    for a in 1.. {
+        println!("Check start value for a = {}", a);
+        if is_program_cloning_itself(a, program) {
+            return a;
+        }
+    }
+    unreachable!();
+}
+
 #[cfg(test)]
 fn input1() -> &'static str {
 "Register A: 729
@@ -204,8 +231,14 @@ fn test_example1() {
     assert_eq!(program, vec![(ADV, 1), (OUT, 4), (JNZ, 0)]);
 
     let output = run_program(&program, state);
+    if VERBOSE {println!("Output: {:?}", output);}
     assert_eq!(output, vec![4,6,3,5,6,3,5,2,1,0]);
     assert_eq!(output_to_string(&output), "4,6,3,5,6,3,5,2,1,0");
+
+    assert!(is_program_cloning_itself(117440, &program));
+
+//    let a = find_first_cloning_a(&program);
+//    assert_eq!(a, 117440);
 
 }
 
