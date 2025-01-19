@@ -223,6 +223,15 @@ Register C: 0
 Program: 0,1,5,4,3,0"
 }
 
+#[cfg(test)]
+fn input2() -> &'static str {
+"Register A: 2024
+Register B: 0
+Register C: 0
+
+Program: 0,3,5,4,3,0"
+}
+
 #[test]
 fn test_example1() {
     let input = input1();
@@ -234,6 +243,13 @@ fn test_example1() {
     if VERBOSE {println!("Output: {:?}", output);}
     assert_eq!(output, vec![4,6,3,5,6,3,5,2,1,0]);
     assert_eq!(output_to_string(&output), "4,6,3,5,6,3,5,2,1,0");
+}
+
+#[test]
+fn test_example2() {
+
+    let input = input2();
+    let (_state,program) = read_input(input.split('\n'));
 
     assert!(is_program_cloning_itself(117440, &program));
 
