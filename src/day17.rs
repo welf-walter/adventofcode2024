@@ -1,4 +1,4 @@
-const VERBOSE : bool = true;
+const VERBOSE : bool = false;
 
 type Register = u32;
 
@@ -264,9 +264,12 @@ fn test_example2() {
 
 pub fn puzzle() {
     let lines = crate::helper::read_file("input/day17.txt");
-    let (initial_state,program1) = read_input(lines.iter().map(|line| line.as_str()));
+    let (initial_state,program) = read_input(lines.iter().map(|line| line.as_str()));
 
-    if VERBOSE {println!("Day 16, Debug program = {:?}", program1);}
-    let output1 = run_program(&program1, initial_state.clone());
+    if VERBOSE {println!("Day 16, Debug program = {:?}", program);}
+    let output1 = run_program(&program, initial_state.clone());
     println!("Day 16, Part 1: Output of program is {:?}", output_to_string(&output1));
+
+    let a = find_first_cloning_a(&program);
+    println!("Day 16, Part 2: Register A value {} leads to cloning", a);
 }
