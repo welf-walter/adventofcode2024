@@ -1,4 +1,4 @@
-const VERBOSE : bool = true;
+const VERBOSE : bool = false;
 
 type Register = u32;
 
@@ -219,9 +219,5 @@ pub fn puzzle() {
 
     if VERBOSE {println!("Day 16, Debug program = {:?}", program1);}
     let output1 = run_program(&program1, initial_state.clone());
-    if VERBOSE {println!("Day 16, Output of debug program is {:?}", output_to_string(&output1));}
-    let program2 = program_from_vec(output1);
-    if VERBOSE {println!("Day 16, Generated program = {:?}", program2);}
-    let output2 = run_program(&program2, initial_state);
-    println!("Day 16, Part 1: Output of generated program is {}", output_to_string(&output2));
+    println!("Day 16, Part 1: Output of program is {:?}", output_to_string(&output1));
 }
