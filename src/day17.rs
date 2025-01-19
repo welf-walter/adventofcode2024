@@ -51,7 +51,7 @@ impl ComputerState {
             ADV => { self.a = self.a / BASE2.pow(combo(operand, self)); }
             BXL => { self.b = self.b ^ operand; },
             BST => { self.b = combo(operand, self) % 8;  },
-            JNZ => { if self.a > 0 { self.ip = operand as usize }},
+            JNZ => { if self.a > 0 { self.ip = (operand as usize) / 2 }},
             BXC => { self.b = self.b ^ self.c },
             OUT => { return Some(combo(operand, self) % 8) },
             BDV => { self.b = self.a / BASE2.pow(combo(operand, self)); },
@@ -112,6 +112,11 @@ fn combo(operand: Operand, state:&ComputerState) -> Register {
 }
 
 type Output = Vec<Register>;
+
+fn output_to_string(output:&Output) -> String {
+    let output_string_vec = output.iter().map(|&i| i.to_string()).collect::<Vec<_>>();
+    output_string_vec.join(",")
+}
 
 fn run_program(program:&Program, inital_state:ComputerState) -> Output {
     let mut state = inital_state.clone();
@@ -197,6 +202,11 @@ fn test_example1() {
     let (state,program) = read_input(input.split('\n'));
     assert_eq!(state, ComputerState{a:729, b:0, c:0, ip:0});
     assert_eq!(program, vec![(ADV, 1), (OUT, 4), (JNZ, 0)]);
+
+    let output = run_program(&program, state);
+    assert_eq!(output, vec![4,6,3,5,6,3,5,2,1,0]);
+    assert_eq!(output_to_string(&output), "4,6,3,5,6,3,5,2,1,0");
+
 }
 
 //////////////////////////////////////////
@@ -209,13 +219,9 @@ pub fn puzzle() {
 
     if VERBOSE {println!("Day 16, Debug program = {:?}", program1);}
     let output1 = run_program(&program1, initial_state.clone());
-    let output1_str = output1.iter().map(|&i| i.to_string()).collect::<Vec<_>>();
-    if VERBOSE {println!("Day 16, Output of debug program is {:?}", output1_str.join(","));}
+    if VERBOSE {println!("Day 16, Output of debug program is {:?}", output_to_string(&output1));}
     let program2 = program_from_vec(output1);
     if VERBOSE {println!("Day 16, Generated program = {:?}", program2);}
     let output2 = run_program(&program2, initial_state);
-    let output2_str = output2.iter().map(|&i| i.to_string()).collect::<Vec<_>>();
-
-
-    println!("Day 16, Part 1: Output of generated program is {}", output2_str.join(","));
+    println!("Day 16, Part 1: Output of generated program is {}", output_to_string(&output2));
 }
