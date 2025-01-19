@@ -226,7 +226,7 @@ fn is_program_cloning_itself(a:Register, program:&Program) -> bool {
 
 fn find_first_cloning_a(program:&Program) -> Register {
     for a in 1.. {
-        if a % 10000 == 0 {
+        if a % 1000000 == 0 {
             println!("Check start value for a = {}", a);
         }
         if is_program_cloning_itself(a, program) {
