@@ -169,23 +169,6 @@ fn run_program_check_output(program:&Program, inital_state:ComputerState, expect
     }
 }
 
-
-fn program_from_vec(vec:Vec<Register>) -> Option<Program> {
-    let mut j = vec.into_iter();
-    let mut program:Program = Program::new();
-    loop {
-        if let Some(opcode) = j.next() {
-            let operando = j.next();
-            if operando.is_none() { return None; }
-            let operand = operando.unwrap();
-            let opcode = Opcode::from_int(opcode);
-            program.push((opcode,operand));
-        } else {
-            return Some(program);
-        }
-    }
-}
-
 fn program_to_vec(program:&Program) -> Vec<Register> {
     let mut result = Vec::new();
     for &(opcode,operand) in program {
@@ -243,7 +226,9 @@ fn is_program_cloning_itself(a:Register, program:&Program) -> bool {
 
 fn find_first_cloning_a(program:&Program) -> Register {
     for a in 1.. {
-        println!("Check start value for a = {}", a);
+        if a % 10000 == 0 {
+            println!("Check start value for a = {}", a);
+        }
         if is_program_cloning_itself(a, program) {
             return a;
         }
