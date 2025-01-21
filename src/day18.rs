@@ -83,8 +83,8 @@ impl Problem for Maze {
     }
 }
 
-fn get_blocking_position(positions:&Positions) -> Position {
-    let mut problem = Maze{map:PixelMap::<bool>::new(71,71,false)};
+fn get_blocking_position(initialmap:PixelMap<bool>, positions:&Positions) -> Position {
+    let mut problem = Maze{map:initialmap};
     for &pos in positions {
         problem.map.set_at(pos, true);
         let cost = get_cost_of_state(&problem, Maze::START_STATE);
@@ -133,12 +133,13 @@ fn test_example1() {
     let positions = parse_input(lines);
     assert_eq!(positions[3], (3,0));
 
-    let mut map = PixelMap::<bool>::new(7,7,false);
+    let initialmap = PixelMap::<bool>::new(7,7,false);
 
-    let problem0 = Maze{map:map.clone()};
+    let problem0 = Maze{map:initialmap.clone()};
     let cost0 = get_cost_of_state(&problem0, Maze::START_STATE);
     assert_eq!(cost0, 6+6);
 
+    let mut map = initialmap.clone();
     drop_n(&mut map, &positions, 12);
     assert_eq!(map.at((3,0)), true);
     assert_eq!(map.at((1,2)), false);
@@ -147,7 +148,7 @@ fn test_example1() {
     let cost1 = get_cost_of_state(&problem1, Maze::START_STATE);
     assert_eq!(cost1, 22);
 
-    assert_eq!(get_blocking_position(&positions), (6,1));
+    assert_eq!(get_blocking_position(initialmap, &positions), (6,1));
 }
 
 //////////////////////////////////////////
