@@ -66,10 +66,18 @@ impl Problem for Maze {
     type Action = Direction;
     fn is_end_state(&self, state:&Self::State) -> bool {
         state.0 == self.map.width() - 1 &&
-        state.1 == self.map.height()
+        state.1 == self.map.height() - 1
     }
     fn execute_action(&self, before:Self::State, action:Self::Action) -> Option<Self::State> {
-        self.map.area.step(before, action)
+        if let Some(newpos) = self.map.area.step(before, action) {
+            if self.map.at(newpos) {
+                None
+            } else {
+                Some(newpos)
+            }
+        } else {
+            None
+        }
     }
 }
 
@@ -114,7 +122,7 @@ fn test_example1() {
 
     let problem0 = Maze{map:map.clone()};
     let cost0 = get_cost_of_state(&problem0, Maze::START_STATE);
-    assert_eq!(cost0, 7+7);
+    assert_eq!(cost0, 6+6);
 
     drop_n(&mut map, &positions, 12);
     assert_eq!(map.at((3,0)), true);
