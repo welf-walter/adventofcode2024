@@ -23,6 +23,14 @@ impl FromChar for bool {
     }
 }
 
+fn drop_n(map:&mut PixelMap<bool>, positions:&Positions, n:usize) {
+    let mut iter = positions.iter();
+    for _ in 0..n {
+        let pos = iter.next().unwrap();
+        map.set_at(*pos, true);
+    }
+}
+
 #[cfg(test)]
 fn input1() -> &'static str {
 "5,4
@@ -60,6 +68,8 @@ fn test_example1() {
     let positions = parse_input(lines);
     assert_eq!(positions[3], (3,0));
 
-    let map = PixelMap::<bool>::new(7,7,false);
- //   drop_n(&mut map, 12);
+    let mut map = PixelMap::<bool>::new(7,7,false);
+    drop_n(&mut map, &positions, 12);
+    assert_eq!(map.at((3,0)), true);
+    assert_eq!(map.at((1,2)), false);
 }
