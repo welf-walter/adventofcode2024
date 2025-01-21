@@ -132,3 +132,19 @@ fn test_example1() {
     let cost1 = get_cost_of_state(&problem1, Maze::START_STATE);
     assert_eq!(cost1, 22);
 }
+
+//////////////////////////////////////////
+/// Puzzle
+//////////////////////////////////////////
+
+pub fn puzzle() {
+    let lines = crate::helper::read_file("input/day18.txt");
+    let positions = parse_input(lines.iter().map(|line| line.as_str()).collect());
+    let mut map = PixelMap::<bool>::new(71,71,false);
+
+    drop_n(&mut map, &positions, 1024);
+    let problem = Maze{map};
+    let cost = get_cost_of_state(&problem, Maze::START_STATE);
+
+    println!("Day 16, Part 1: Minimum number of steps to reach output after 1024 bytes is {}", cost);
+}
