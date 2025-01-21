@@ -7,6 +7,8 @@ use crate::optimize::ActionTrait;
 use crate::optimize::Problem;
 type Positions = Vec<Position>;
 
+const VERBOSE:bool = true;
+
 fn parse_input(lines:Vec<&str>) -> Positions {
     lines.iter().map(|&line|
         {
@@ -81,6 +83,19 @@ impl Problem for Maze {
     }
 }
 
+fn get_blocking_position(positions:&Positions) -> Position {
+    let mut problem = Maze{map:PixelMap::<bool>::new(71,71,false)};
+    for &pos in positions {
+        problem.map.set_at(pos, true);
+        let cost = get_cost_of_state(&problem, Maze::START_STATE);
+        if VERBOSE { println!("Cost = {}", cost);}
+        if cost == u32::MAX {
+            return pos
+        }
+    }
+    unreachable!();
+}
+
 #[cfg(test)]
 fn input1() -> &'static str {
 "5,4
@@ -131,6 +146,8 @@ fn test_example1() {
     let problem1 = Maze{map};
     let cost1 = get_cost_of_state(&problem1, Maze::START_STATE);
     assert_eq!(cost1, 22);
+
+    assert_eq!(get_blocking_position(&positions), (6,1));
 }
 
 //////////////////////////////////////////
