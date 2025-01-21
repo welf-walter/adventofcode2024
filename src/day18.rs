@@ -7,7 +7,7 @@ use crate::optimize::ActionTrait;
 use crate::optimize::Problem;
 type Positions = Vec<Position>;
 
-const VERBOSE:bool = true;
+const VERBOSE:bool = false;
 
 fn parse_input(lines:Vec<&str>) -> Positions {
     lines.iter().map(|&line|
@@ -158,11 +158,15 @@ fn test_example1() {
 pub fn puzzle() {
     let lines = crate::helper::read_file("input/day18.txt");
     let positions = parse_input(lines.iter().map(|line| line.as_str()).collect());
-    let mut map = PixelMap::<bool>::new(71,71,false);
+    let initialmap = PixelMap::<bool>::new(71,71,false);
 
-    drop_n(&mut map, &positions, 1024);
-    let problem = Maze{map};
+    let mut map1 = initialmap.clone();
+    drop_n(&mut map1, &positions, 1024);
+    let problem = Maze{map:map1};
     let cost = get_cost_of_state(&problem, Maze::START_STATE);
 
     println!("Day 16, Part 1: Minimum number of steps to reach output after 1024 bytes is {}", cost);
+
+    let blocking_pos = get_blocking_position(initialmap, &positions);
+    println!("Day 16, Part 1: Blocking position is {},{}", blocking_pos.0, blocking_pos.1);
 }
