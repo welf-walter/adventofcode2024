@@ -5,13 +5,33 @@ type Design = String;
 type Designs = Vec<String>;
 type Towels = Vec<String>;
 
-fn is_design_possible(design:&Design, towels:&Towels) -> bool {
-    // ((r)|(wr)..)+
-    let enclosed_towels = towels.iter().map(|towel| String::from("(")+towel+")").collect::<Vec<String>>();
-    let regex_str = String::from("^(") + &enclosed_towels.join("|") + ")+$";
-    if VERBOSE {println!("Does '{}' match '{}'?", regex_str, design);}
-    let regex = Regex::new(&regex_str).unwrap();
-    regex.is_match(&design)
+struct DesignChecker {
+    _towels:Towels,
+    regex:Regex
+}
+
+impl DesignChecker {
+
+    fn new(towels:Towels) -> DesignChecker {
+        let regex = Self::create_regex(&towels);
+        DesignChecker {
+            towels,
+            regex
+        }
+    }
+
+    fn create_regex(towels:&Towels) -> Regex {
+        // ((r)|(wr)..)+
+        let enclosed_towels = towels.iter().map(|towel| String::from("(")+towel+")").collect::<Vec<String>>();
+        let regex_str = String::from("^(") + &enclosed_towels.join("|") + ")+$";
+        if VERBOSE {println!("RegEx = '{}'", regex_str);}
+        Regex::new(&regex_str).unwrap()
+    }
+
+    fn is_design_possible(&self, design:&Design) -> bool {
+        if VERBOSE {println!("Is '{}' possible?", design);}
+        self.regex.is_match(&design)
+    }
 }
 
 fn read_input(input:Vec<String>) -> (Towels, Designs) {
@@ -51,14 +71,16 @@ fn test_example1() {
     assert_eq!(designs.len(), 8);
     assert_eq!(&designs[4], "ubwu");
 
-    assert_eq!(is_design_possible(&designs[0], &towels), true);
-    assert_eq!(is_design_possible(&designs[1], &towels), true);
-    assert_eq!(is_design_possible(&designs[2], &towels), true);
-    assert_eq!(is_design_possible(&designs[3], &towels), true);
-    assert_eq!(is_design_possible(&designs[4], &towels), false);
-    assert_eq!(is_design_possible(&designs[5], &towels), true);
-    assert_eq!(is_design_possible(&designs[6], &towels), true);
-    assert_eq!(is_design_possible(&designs[7], &towels), false);
+    let checker = DesignChecker::new(towels);
+
+    assert_eq!(checker.is_design_possible(&designs[0]), true);
+    assert_eq!(checker.is_design_possible(&designs[1]), true);
+    assert_eq!(checker.is_design_possible(&designs[2]), true);
+    assert_eq!(checker.is_design_possible(&designs[3]), true);
+    assert_eq!(checker.is_design_possible(&designs[4]), false);
+    assert_eq!(checker.is_design_possible(&designs[5]), true);
+    assert_eq!(checker.is_design_possible(&designs[6]), true);
+    assert_eq!(checker.is_design_possible(&designs[7]), false);
 }
 
 //////////////////////////////////////////
@@ -68,8 +90,10 @@ fn test_example1() {
 pub fn puzzle() {
     let lines = crate::helper::read_file("input/day19.txt");
     let (towels, designs) = read_input(lines);
+
+    let checker = DesignChecker::new(towels);
     let design_count = designs.len();
-    let possible_design_count = designs.iter().filter(|&design| is_design_possible(design, &towels)).count();
+    let possible_design_count = designs.iter().filter(|&design| checker.is_design_possible(design)).count();
 
     println!("Day 19, Part 1: From {} designs, there are {} designs possible", design_count, possible_design_count);
 
