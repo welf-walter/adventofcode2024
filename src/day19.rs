@@ -1,3 +1,4 @@
+const VERBOSE:bool=false;
 use regex::Regex;
 
 type Design = String;
@@ -8,7 +9,8 @@ type Towels = Vec<String>;
 fn is_design_possible(design:&Design, towels:&Towels) -> bool {
     // ((r)|(wr)..)+
     let enclosed_towels = towels.iter().map(|towel| String::from("(")+towel+")").collect::<Vec<String>>();
-    let regex_str = String::from("(") + &enclosed_towels.join("|") + ")+";
+    let regex_str = String::from("^(") + &enclosed_towels.join("|") + ")+$";
+    if VERBOSE {println!("Does '{}' match '{}'?", regex_str, design);}
     let regex = Regex::new(&regex_str).unwrap();
     regex.is_match(&design)
 }
