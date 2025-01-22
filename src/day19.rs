@@ -3,7 +3,6 @@ use regex::Regex;
 
 type Design = String;
 type Designs = Vec<String>;
-type Towel = String;
 type Towels = Vec<String>;
 
 fn is_design_possible(design:&Design, towels:&Towels) -> bool {
@@ -60,4 +59,18 @@ fn test_example1() {
     assert_eq!(is_design_possible(&designs[5], &towels), true);
     assert_eq!(is_design_possible(&designs[6], &towels), true);
     assert_eq!(is_design_possible(&designs[7], &towels), false);
+}
+
+//////////////////////////////////////////
+/// Puzzle
+//////////////////////////////////////////
+
+pub fn puzzle() {
+    let lines = crate::helper::read_file("input/day19.txt");
+    let (towels, designs) = read_input(lines);
+    let design_count = designs.len();
+    let possible_design_count = designs.iter().filter(|&design| is_design_possible(design, &towels)).count();
+
+    println!("Day 19, Part 1: From {} designs, there are {} designs possible", design_count, possible_design_count);
+
 }
