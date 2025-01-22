@@ -1,16 +1,22 @@
+use regex::Regex;
+
 type Design = String;
 type Designs = Vec<String>;
 type Towel = String;
 type Towels = Vec<String>;
 
-fn is_design_possible(design:Design, towels:Towels) -> bool {
-    false
+fn is_design_possible(design:&Design, towels:&Towels) -> bool {
+    // ((r)|(wr)..)+
+    let enclosed_towels = towels.iter().map(|towel| String::from("(")+towel+")").collect::<Vec<String>>();
+    let regex_str = String::from("(") + &enclosed_towels.join("|") + ")+";
+    let regex = Regex::new(&regex_str).unwrap();
+    regex.is_match(&design)
 }
 
 fn read_input(input:Vec<String>) -> (Towels, Designs) {
     let mut iter = input.iter();
     let towels_line = iter.next().unwrap();
-    let towels = towels_line.split(", ").map(|str| str.to_string()).collect::<Vec<_>>();
+    let towels = towels_line.split(", ").map(|str| str.to_string()).collect::<Towels>();
 
     assert_eq!(iter.next().unwrap(), "");
 
@@ -43,4 +49,13 @@ fn test_example1() {
     assert_eq!(&towels[4], "bwu");
     assert_eq!(designs.len(), 8);
     assert_eq!(&designs[4], "ubwu");
+
+    assert_eq!(is_design_possible(&designs[0], &towels), true);
+    assert_eq!(is_design_possible(&designs[1], &towels), true);
+    assert_eq!(is_design_possible(&designs[2], &towels), true);
+    assert_eq!(is_design_possible(&designs[3], &towels), true);
+    assert_eq!(is_design_possible(&designs[4], &towels), false);
+    assert_eq!(is_design_possible(&designs[5], &towels), true);
+    assert_eq!(is_design_possible(&designs[6], &towels), true);
+    assert_eq!(is_design_possible(&designs[7], &towels), false);
 }
