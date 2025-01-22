@@ -15,7 +15,7 @@ impl DesignChecker {
     fn new(towels:Towels) -> DesignChecker {
         let regex = Self::create_regex(&towels);
         DesignChecker {
-            towels,
+            _towels: towels,
             regex
         }
     }
