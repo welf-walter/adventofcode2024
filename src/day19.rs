@@ -1,6 +1,8 @@
 const VERBOSE:bool=false;
 use regex::Regex;
 
+use crate::optimize::{ActionTrait, Problem};
+
 type Design = String;
 type Designs = Vec<String>;
 type Towels = Vec<String>;
@@ -81,6 +83,45 @@ fn test_example1() {
     assert_eq!(checker.is_design_possible(&designs[5]), true);
     assert_eq!(checker.is_design_possible(&designs[6]), true);
     assert_eq!(checker.is_design_possible(&designs[7]), false);
+}
+
+//////////////////////////////////////////
+/// Part 2
+//////////////////////////////////////////
+
+#[derive(PartialEq, Eq, Hash, Debug, Clone, Copy)]
+struct MatchState {
+    //design:String,
+    // number of already matched characters
+    matched:usize
+}
+
+struct DesignProblem {
+    design:String
+}
+
+impl Problem for DesignProblem {
+    type State = MatchState;
+    type Action = String;
+
+    fn is_end_state(&self, state:&Self::State) -> bool {
+        self.design.len() == state.matched
+    }
+
+    fn execute_action(&self, before:Self::State, action:Self::Action) -> Option<Self::State> {
+        
+    }
+
+}
+
+impl ActionTrait for String {
+    fn all_actions() -> &'static [Self] {
+        &["r".to_string(), "wr".to_string(), "b".to_string(), "g".to_string(), "bwu".to_string(), "rb".to_string(), "gb".to_string(), "br".to_string()]
+    }
+
+    fn cost(self) -> crate::optimize::Cost {
+        1
+    }
 }
 
 //////////////////////////////////////////
