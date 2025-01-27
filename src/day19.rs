@@ -1,4 +1,4 @@
-const VERBOSE:bool=true;
+const VERBOSE:bool=false;
 use regex::Regex;
 
 use crate::optimize::{get_all_best_paths, ActionTrait, Problem};
@@ -104,7 +104,7 @@ struct DesignProblem {
 type TowelIndex = usize;
 
 impl DesignProblem {
-    fn from(towel_strs:Vec<&str>, design_str:&str) -> DesignProblem {
+    fn from(towel_strs:&Vec<&str>, design_str:&str) -> DesignProblem {
         DesignProblem {
             towels: towel_strs.iter().map(|&str| str.to_string()).collect::<Vec<String>>(),
             design: design_str.chars().collect::<Vec<char>>()
@@ -157,7 +157,7 @@ impl ActionTrait for TowelIndex {
 fn test_part2()
 {
     let towels_str = vec!["r","wr","b","g","bwu","rb","gb","br"];
-    let brwrr = DesignProblem::from(towels_str, "brwrr");
+    let brwrr = DesignProblem::from(&towels_str, "brwrr");
 
     assert_eq!(brwrr.execute_action(MatchState{matched:0}, 0), None);
     assert_eq!(brwrr.execute_action(MatchState{matched:1}, 0), Some(MatchState{matched: 2}));
@@ -167,6 +167,39 @@ fn test_part2()
     assert_eq!(brwrr_paths.len(), 2);
     assert_eq!(brwrr_paths[0], vec![brwrr.index("br"),                  brwrr.index("wr"), brwrr.index("r")]);
     assert_eq!(brwrr_paths[1], vec![brwrr.index("b"), brwrr.index("r"), brwrr.index("wr"), brwrr.index("r")]);
+
+    let bggr = DesignProblem::from(&towels_str, "bggr");
+    let bggr_paths = get_all_best_paths(&bggr, MatchState{matched:0});
+    assert_eq!(bggr_paths.len(), 1);
+
+    let gbbr = DesignProblem::from(&towels_str, "gbbr");
+    let gbbr_paths = get_all_best_paths(&gbbr, MatchState{matched:0});
+    assert_eq!(gbbr_paths.len(), 4);
+    assert_eq!(gbbr_paths[0], vec![gbbr.index("gb"),                 gbbr.index("br")]);
+    assert_eq!(gbbr_paths[1], vec![gbbr.index("g"), gbbr.index("b"), gbbr.index("br")]);
+    assert_eq!(gbbr_paths[2], vec![gbbr.index("gb"),                 gbbr.index("b"), gbbr.index("r")]);
+    assert_eq!(gbbr_paths[3], vec![gbbr.index("g"), gbbr.index("b"), gbbr.index("b"), gbbr.index("r")]);
+
+    let rrbgbr = DesignProblem::from(&towels_str, "rrbgbr");
+    let rrbgbr_paths = get_all_best_paths(&rrbgbr, MatchState{matched:0});
+    assert_eq!(rrbgbr_paths.len(), 6);
+
+    let bwurrg = DesignProblem::from(&towels_str, "bwurrg");
+    let bwurrg_paths = get_all_best_paths(&bwurrg, MatchState{matched:0});
+    assert_eq!(bwurrg_paths.len(), 1);
+
+    let brgr = DesignProblem::from(&towels_str, "brgr");
+    let brgr_paths = get_all_best_paths(&brgr, MatchState{matched:0});
+    assert_eq!(brgr_paths.len(), 2);
+
+    let ubwu = DesignProblem::from(&towels_str, "ubwu");
+    let ubwu_paths = get_all_best_paths(&ubwu, MatchState{matched:0});
+    assert_eq!(ubwu_paths.len(), 0);
+
+    let bbrgwb = DesignProblem::from(&towels_str, "bbrgwb");
+    let bbrgwb_paths = get_all_best_paths(&bbrgwb, MatchState{matched:0});
+    assert_eq!(bbrgwb_paths.len(), 0);
+
 }
 
 //////////////////////////////////////////
