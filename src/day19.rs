@@ -157,7 +157,7 @@ impl Problem for DesignProblem {
     }
 
     fn all_actions(&self) -> Vec<Self::Action> {
-        vec![0,1,2,3,4,5,6,7]
+        (0..self.towels.len()).collect()
     }
 
 }
