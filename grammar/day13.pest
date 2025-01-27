@@ -6,7 +6,7 @@
 
 number = { ASCII_DIGIT + }
 
-machine = { 
+machine = {
     "Button A: X+" ~ number ~ ", Y+" ~ number ~ NEWLINE ~
     "Button B: X+" ~ number ~ ", Y+" ~ number ~ NEWLINE ~
     "Prize: X=" ~ number ~ ", Y=" ~ number ~ NEWLINE

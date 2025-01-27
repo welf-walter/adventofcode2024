@@ -23,13 +23,13 @@ impl Report {
 
     fn is_slowly_changing(&self, min_diff:Level, max_diff:Level, tolerate_one: bool, ignore:Option<usize> ) -> bool {
         //println!("Check >= {} <= {} tolerate {} ", min_diff, max_diff, tolerate);
-        
+
         let end = if ignore.is_some() { self.levels.len() - 2 } else { self.levels.len() - 1};
         for i in 0 .. end {
 
             //print!("{} ", next - last);
             let diff = self.level(i+1, ignore) - self.level(i, ignore);
-            if diff > max_diff || 
+            if diff > max_diff ||
                diff < min_diff {
                 if tolerate_one {
                     return self.is_slowly_changing(min_diff, max_diff, false, Some(i))

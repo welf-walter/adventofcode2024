@@ -84,7 +84,7 @@ fn sum_of_trailhead_rating(map:&Map) -> u32 {
 
 #[test]
 fn test_trail() {
-    let input1 = 
+    let input1 =
 "0123
 1234
 8765
