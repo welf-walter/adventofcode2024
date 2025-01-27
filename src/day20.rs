@@ -43,10 +43,6 @@ impl ActionTrait for Direction {
             Up, Right, Down, Left
         ]
     }
-
-    fn cost(self) -> crate::optimize::Cost {
-        1
-    }
 }
 
 type Cost = u32;
@@ -73,6 +69,10 @@ impl<'a> Problem for ShortestPathProblem<'a> {
         let after = after.unwrap();
         if self.map.at(after) == Wall { return None; }
         return Some(after);
+    }
+
+    fn cost(&self, _action:Self::Action) -> crate::optimize::Cost {
+        1
     }
 
 }

@@ -54,9 +54,6 @@ impl ActionTrait for Action {
             Action{direction:Direction::Left},
             Action{direction:Direction::Right}]
     }
-    fn cost(self) -> crate::optimize::Cost {
-        1
-    }
 }
 
 impl Maze {
@@ -80,6 +77,10 @@ impl Problem for Maze {
         } else {
             None
         }
+    }
+
+    fn cost(&self, _action:Self::Action) -> crate::optimize::Cost {
+        1
     }
 }
 

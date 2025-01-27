@@ -9,7 +9,6 @@ const VERBOSE:bool = false;
 
 pub trait ActionTrait:Sized+Clone+Copy+Debug {
     fn all_actions() -> &'static [Self];
-    fn cost(self) -> Cost;
 }
 
 pub trait Problem {
@@ -19,10 +18,14 @@ pub trait Problem {
     // does this state solve the problem?
     fn is_end_state(&self, state:&Self::State) -> bool;
 
+    // get cost of action
+    fn cost(&self, action:Self::Action) -> Cost;
+
     // what happens if an action is executed on before state?
     // return None if action is invalid
     fn execute_action(&self, before:Self::State, action:Self::Action) -> Option<Self::State>;
 }
+
 
 // remember the currently lowest cost for a state
 // not there means infinite
@@ -71,7 +74,7 @@ impl<P:Problem> ProblemSolver<'_, P> {
             for &action in P::Action::all_actions() {
                 if VERBOSE { println!("  try to do {:?}", action);}
                 if let Some(after) = self.problem.execute_action(state, action) {
-                    let new_cost = action.cost();
+                    let new_cost = self.problem.cost(action);
                     assert!(new_cost > 0);
                     let cost_this_way = new_cost + current_cost;
 
@@ -125,7 +128,7 @@ impl<P:Problem> ProblemSolver<'_, P> {
             for &action in P::Action::all_actions() {
                 if VERBOSE { println!("  try to do {:?}", action);}
                 if let Some(after) = self.problem.execute_action(state, action) {
-                    let new_cost = action.cost();
+                    let new_cost = self.problem.cost(action);
                     assert!(new_cost > 0);
                     let cost_this_way = new_cost + current_cost;
 
@@ -248,7 +251,7 @@ mod test {
 
 use crate::optimize::{get_all_best_paths, get_cost_cache, get_cost_of_state, Problem, ProblemSolver};
 
-use super::ActionTrait;
+use super::{ActionTrait};
 
 #[derive(Debug, PartialEq, Hash, Eq, Clone, Copy)]
 struct TestState {
@@ -266,7 +269,6 @@ impl ActionTrait for TestAction {
     fn all_actions() -> &'static [TestAction] {
         &[TestAction::Double, TestAction::Increment, TestAction::Decrement]
     }
-    fn cost(self) -> super::Cost { 1 }
 }
 
 struct TestProblem {
@@ -289,6 +291,10 @@ impl Problem for TestProblem {
         }
     }
 
+    fn cost(&self, _action:Self::Action) -> super::Cost {
+        1
+    }
+
 }
 
 #[test]
@@ -299,7 +305,7 @@ fn test_actions() {
     assert_eq!(problem.execute_action(TestState{value:5}, TestAction::Double), Some(TestState{value:10}));
     assert_eq!(problem.execute_action(TestState{value:5}, TestAction::Increment), Some(TestState{value:6}));
     assert_eq!(problem.execute_action(TestState{value:0}, TestAction::Decrement), None);
-    assert_eq!(TestAction::Decrement.cost(), 1);
+    assert_eq!(problem.cost(TestAction::Decrement), 1);
     // expected best solution: Double/Increment, Double, Double, Double, Decrement
     assert_eq!(get_cost_of_state(&problem, TestState{value:1}), 5);
 
@@ -321,7 +327,7 @@ fn test_all_paths() {
     let (endstate, endcost) = endstates[0];
     assert_eq!(endstate, TestState{value:5});
     assert_eq!(endcost, 3);
- 
+
     assert_eq!(solver.cost_cache.get(&TestState{value:2}).unwrap(),&1);
     assert_eq!(solver.best_predecessors.get(&TestState{value:2}).unwrap(),&vec![(TestState{value:1}, TestAction::Double), (TestState{value:1}, TestAction::Increment)]);
     assert_eq!(solver.cost_cache.get(&TestState{value:3}).unwrap(),&2);

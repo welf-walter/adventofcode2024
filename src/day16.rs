@@ -47,14 +47,6 @@ impl ActionTrait for Action {
     fn all_actions() -> &'static [Self] {
         &[Walk, TurnRight, TurnLeft]
      }
-    
-    fn cost(self) -> Cost {
-        match self {
-            Walk      => 1,
-            TurnLeft  => 1000,
-            TurnRight => 1000
-        }
-    }
 }
 
 type State = (Position,Direction);
@@ -105,6 +97,14 @@ impl Problem for Puzzle {
                     None => None
                 }
             }
+        }
+    }
+
+    fn cost(&self, action:Action) -> Cost {
+        match action {
+            Walk      => 1,
+            TurnLeft  => 1000,
+            TurnRight => 1000
         }
     }
 

@@ -142,15 +142,14 @@ impl Problem for DesignProblem {
         }
     }
 
+    fn cost(&self, action:Self::Action) -> crate::optimize::Cost {
+        self.towels[action].len() as crate::optimize::Cost
+    }
 }
 
 impl ActionTrait for TowelIndex {
     fn all_actions() -> &'static [Self] {
         &[0,1,2,3,4,5,6,7]
-    }
-
-    fn cost(self) -> crate::optimize::Cost {
-        1
     }
 }
 
@@ -166,8 +165,8 @@ fn test_part2()
 
     let brwrr_paths = get_all_best_paths(&brwrr, MatchState{matched:0});
     assert_eq!(brwrr_paths.len(), 2);
-    assert_eq!(brwrr_paths[0], vec![brwrr.index("b"), brwrr.index("r"), brwrr.index("wr"), brwrr.index("r")]);
-    assert_eq!(brwrr_paths[1], vec![brwrr.index("br"),                  brwrr.index("wr"), brwrr.index("r")]);
+    assert_eq!(brwrr_paths[0], vec![brwrr.index("br"),                  brwrr.index("wr"), brwrr.index("r")]);
+    assert_eq!(brwrr_paths[1], vec![brwrr.index("b"), brwrr.index("r"), brwrr.index("wr"), brwrr.index("r")]);
 }
 
 //////////////////////////////////////////
