@@ -104,6 +104,8 @@ struct DesignProblem {
 type TowelIndex = usize;
 
 impl DesignProblem {
+
+    #[cfg(test)]
     fn from(towel_strs:&Vec<&str>, design_str:&str) -> DesignProblem {
         DesignProblem {
             towels: towel_strs.iter().map(|&str| str.to_string()).collect::<Vec<String>>(),
@@ -111,6 +113,14 @@ impl DesignProblem {
         }
     }
 
+    fn from_string(towels:&Vec<String>, design:&String) -> DesignProblem {
+        DesignProblem {
+            towels: towels.clone(),
+            design: design.chars().collect::<Vec<char>>()
+        }
+    }
+
+    #[cfg(test)]
     fn index(&self, towel_str:&str) -> TowelIndex {
         self.towels.iter().position(|towel| towel == towel_str).expect("unknown towel")
     }
@@ -212,10 +222,19 @@ pub fn puzzle() {
     let lines = crate::helper::read_file("input/day19.txt");
     let (towels, designs) = read_input(lines);
 
-    let checker = DesignChecker::new(towels);
+    let checker = DesignChecker::new(towels.clone());
     let design_count = designs.len();
     let possible_design_count = designs.iter().filter(|&design| checker.is_design_possible(design)).count();
 
     println!("Day 19, Part 1: From {} designs, there are {} designs possible", design_count, possible_design_count);
+
+    let sum_of_all_possible_combinations:usize = designs.iter().map(
+        |design| {
+            let problem = DesignProblem::from_string(&towels, design);
+            get_all_best_paths(&problem, MatchState{matched:0}).len()
+        }
+    ).sum();
+
+    println!("Day 19, Part 2: The {} designs can be build in {} ways", design_count, sum_of_all_possible_combinations);
 
 }
