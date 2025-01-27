@@ -44,9 +44,6 @@ use crate::optimize::Problem;
 use crate::optimize::get_cost_of_state;
 
 impl ActionTrait for Action {
-    fn all_actions() -> &'static [Self] {
-        &[Walk, TurnRight, TurnLeft]
-     }
 }
 
 type State = (Position,Direction);
@@ -107,6 +104,10 @@ impl Problem for Puzzle {
             TurnRight => 1000
         }
     }
+
+    fn all_actions(&self) -> Vec<Action> {
+        vec![Walk, TurnRight, TurnLeft]
+     }
 
     /*
     fn print_cache(&self, cache:HashMap<State,Cost>) {

@@ -145,12 +145,14 @@ impl Problem for DesignProblem {
     fn cost(&self, action:Self::Action) -> crate::optimize::Cost {
         self.towels[action].len() as crate::optimize::Cost
     }
+
+    fn all_actions(&self) -> Vec<Self::Action> {
+        vec![0,1,2,3,4,5,6,7]
+    }
+
 }
 
 impl ActionTrait for TowelIndex {
-    fn all_actions() -> &'static [Self] {
-        &[0,1,2,3,4,5,6,7]
-    }
 }
 
 #[test]

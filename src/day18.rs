@@ -3,7 +3,6 @@ use crate::optimize::get_cost_of_state;
 use crate::maps::FromChar;
 use crate::maps::Position;
 use crate::maps::PixelMap;
-use crate::optimize::ActionTrait;
 use crate::optimize::Problem;
 type Positions = Vec<Position>;
 
@@ -41,21 +40,6 @@ struct Maze {
     map:PixelMap<bool>
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
-struct Action {
-    direction:Direction
-}
-
-impl ActionTrait for Action {
-    fn all_actions() -> &'static [Self] {
-        &[
-            Action{direction:Direction::Up},
-            Action{direction:Direction::Down},
-            Action{direction:Direction::Left},
-            Action{direction:Direction::Right}]
-    }
-}
-
 impl Maze {
     const START_STATE:Position = (0,0);
 }
@@ -82,6 +66,15 @@ impl Problem for Maze {
     fn cost(&self, _action:Self::Action) -> crate::optimize::Cost {
         1
     }
+
+    fn all_actions(&self) -> Vec<Direction> {
+        vec![
+            Direction::Up,
+            Direction::Down,
+            Direction::Left,
+            Direction::Right]
+    }
+
 }
 
 fn get_blocking_position(initialmap:PixelMap<bool>, positions:&Positions) -> Position {

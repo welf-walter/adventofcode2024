@@ -8,7 +8,6 @@ pub type Cost = u32;
 const VERBOSE:bool = false;
 
 pub trait ActionTrait:Sized+Clone+Copy+Debug {
-    fn all_actions() -> &'static [Self];
 }
 
 pub trait Problem {
@@ -24,6 +23,9 @@ pub trait Problem {
     // what happens if an action is executed on before state?
     // return None if action is invalid
     fn execute_action(&self, before:Self::State, action:Self::Action) -> Option<Self::State>;
+
+    // return a list of all available actions
+    fn all_actions(&self) -> Vec<Self::Action>;
 }
 
 
@@ -54,6 +56,8 @@ impl<P:Problem> ProblemSolver<'_, P> {
 
     fn find_best_path_to_end(&mut self) -> Option<(/* endstate: */P::State, /* cost: */Cost)> where <P as Problem>::Action: 'static {
 
+        let all_actions = self.problem.all_actions();
+
         // these states are to investigate
         let mut backlog:Vec<P::State> = Vec::new();
 
@@ -71,7 +75,7 @@ impl<P:Problem> ProblemSolver<'_, P> {
             let (state, current_cost) = self.extract_cheapest_state(&mut backlog);
             if VERBOSE { println!("Handle {:?} with cost = {}", state, current_cost);}
 
-            for &action in P::Action::all_actions() {
+            for &action in &all_actions {
                 if VERBOSE { println!("  try to do {:?}", action);}
                 if let Some(after) = self.problem.execute_action(state, action) {
                     let new_cost = self.problem.cost(action);
@@ -107,6 +111,8 @@ impl<P:Problem> ProblemSolver<'_, P> {
     // find all best path and fill predecessor cache
     fn find_all_best_path_to_end_states(&mut self, maximal_cost:Cost) -> Vec<(/* endstate: */P::State, /* cost: */Cost)> where <P as Problem>::Action: 'static {
 
+        let all_actions = self.problem.all_actions();
+
         // these states are to investigate
         let mut backlog:Vec<P::State> = Vec::new();
         let mut end_states:HashMap<P::State, Cost> = HashMap::new();
@@ -125,7 +131,7 @@ impl<P:Problem> ProblemSolver<'_, P> {
             let (state, current_cost) = self.extract_cheapest_state(&mut backlog);
             if VERBOSE { println!("Handle {:?} with cost = {}", state, current_cost);}
 
-            for &action in P::Action::all_actions() {
+            for &action in &all_actions {
                 if VERBOSE { println!("  try to do {:?}", action);}
                 if let Some(after) = self.problem.execute_action(state, action) {
                     let new_cost = self.problem.cost(action);
@@ -266,9 +272,6 @@ enum TestAction {
 }
 
 impl ActionTrait for TestAction {
-    fn all_actions() -> &'static [TestAction] {
-        &[TestAction::Double, TestAction::Increment, TestAction::Decrement]
-    }
 }
 
 struct TestProblem {
@@ -295,13 +298,17 @@ impl Problem for TestProblem {
         1
     }
 
+    fn all_actions(&self) -> Vec<Self::Action> {
+        vec![TestAction::Double, TestAction::Increment, TestAction::Decrement]
+    }
+
 }
 
 #[test]
 fn test_actions() {
-    assert_eq!(TestAction::all_actions().len(), 3);
-    assert_eq!(TestAction::all_actions()[1], TestAction::Increment);
     let problem = TestProblem {target_value:15};
+    assert_eq!(problem.all_actions().len(), 3);
+    assert_eq!(problem.all_actions()[1], TestAction::Increment);
     assert_eq!(problem.execute_action(TestState{value:5}, TestAction::Double), Some(TestState{value:10}));
     assert_eq!(problem.execute_action(TestState{value:5}, TestAction::Increment), Some(TestState{value:6}));
     assert_eq!(problem.execute_action(TestState{value:0}, TestAction::Decrement), None);

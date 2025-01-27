@@ -38,11 +38,6 @@ type Map = PixelMap<MapElement>;
 use crate::optimize::ActionTrait;
 
 impl ActionTrait for Direction {
-    fn all_actions() -> &'static [Self] {
-        &[
-            Up, Right, Down, Left
-        ]
-    }
 }
 
 type Cost = u32;
@@ -73,6 +68,12 @@ impl<'a> Problem for ShortestPathProblem<'a> {
 
     fn cost(&self, _action:Self::Action) -> crate::optimize::Cost {
         1
+    }
+
+    fn all_actions(&self) -> Vec<Self::Action> {
+        vec![
+            Up, Right, Down, Left
+        ]
     }
 
 }
