@@ -1,7 +1,7 @@
-const VERBOSE:bool=false;
+const VERBOSE:bool=true;
 use regex::Regex;
 
-use crate::optimize::{ActionTrait, Problem};
+use crate::optimize::{get_all_best_paths, ActionTrait, Problem};
 
 type Design = String;
 type Designs = Vec<String>;
@@ -101,6 +101,8 @@ struct DesignProblem {
     design:Vec<char>
 }
 
+type TowelIndex = usize;
+
 impl DesignProblem {
     fn from(towel_strs:Vec<&str>, design_str:&str) -> DesignProblem {
         DesignProblem {
@@ -108,9 +110,12 @@ impl DesignProblem {
             design: design_str.chars().collect::<Vec<char>>()
         }
     }
+
+    fn index(&self, towel_str:&str) -> TowelIndex {
+        self.towels.iter().position(|towel| towel == towel_str).expect("unknown towel")
+    }
 }
 
-type TowelIndex = usize;
 
 impl Problem for DesignProblem {
     type State = MatchState;
@@ -122,9 +127,14 @@ impl Problem for DesignProblem {
 
     fn execute_action(&self, before:Self::State, action:Self::Action) -> Option<Self::State> {
         let towel = &self.towels[action];
+        let len = towel.len();
+        if before.matched + len > self.design.len() {
+            if VERBOSE { println!("  Towel {:?} is too large", towel)};
+            return None;
+        }
         let act = towel.chars().collect::<Vec<char>>();
         let exp = &self.design[before.matched..before.matched+act.len()];
-        if VERBOSE { println!("  Is {:?} == {:?}?", act, exp)};
+        if VERBOSE { println!("  Starts {:?} with {:?}?", &self.design[before.matched..], act)};
         if act == exp {
             Some(MatchState{matched:before.matched + act.len()})
         } else {
@@ -148,12 +158,16 @@ impl ActionTrait for TowelIndex {
 fn test_part2()
 {
     let towels_str = vec!["r","wr","b","g","bwu","rb","gb","br"];
-    let problem1 = DesignProblem::from(towels_str, "brwrr");
+    let brwrr = DesignProblem::from(towels_str, "brwrr");
 
-    assert_eq!(problem1.execute_action(MatchState{matched:0}, 0), None);
-    assert_eq!(problem1.execute_action(MatchState{matched:1}, 0), Some(MatchState{matched: 2}));
-    assert_eq!(problem1.execute_action(MatchState{matched:0}, 7), Some(MatchState{matched: 2}));
+    assert_eq!(brwrr.execute_action(MatchState{matched:0}, 0), None);
+    assert_eq!(brwrr.execute_action(MatchState{matched:1}, 0), Some(MatchState{matched: 2}));
+    assert_eq!(brwrr.execute_action(MatchState{matched:0}, 7), Some(MatchState{matched: 2}));
 
+    let brwrr_paths = get_all_best_paths(&brwrr, MatchState{matched:0});
+    assert_eq!(brwrr_paths.len(), 2);
+    assert_eq!(brwrr_paths[0], vec![brwrr.index("b"), brwrr.index("r"), brwrr.index("wr"), brwrr.index("r")]);
+    assert_eq!(brwrr_paths[1], vec![brwrr.index("br"),                  brwrr.index("wr"), brwrr.index("r")]);
 }
 
 //////////////////////////////////////////
