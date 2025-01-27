@@ -97,31 +97,63 @@ struct MatchState {
 }
 
 struct DesignProblem {
-    design:String
+    towels:Towels,
+    design:Vec<char>
 }
+
+impl DesignProblem {
+    fn from(towel_strs:Vec<&str>, design_str:&str) -> DesignProblem {
+        DesignProblem {
+            towels: towel_strs.iter().map(|&str| str.to_string()).collect::<Vec<String>>(),
+            design: design_str.chars().collect::<Vec<char>>()
+        }
+    }
+}
+
+type TowelIndex = usize;
 
 impl Problem for DesignProblem {
     type State = MatchState;
-    type Action = String;
+    type Action = TowelIndex;
 
     fn is_end_state(&self, state:&Self::State) -> bool {
         self.design.len() == state.matched
     }
 
     fn execute_action(&self, before:Self::State, action:Self::Action) -> Option<Self::State> {
-        
+        let towel = &self.towels[action];
+        let act = towel.chars().collect::<Vec<char>>();
+        let exp = &self.design[before.matched..before.matched+act.len()];
+        if VERBOSE { println!("  Is {:?} == {:?}?", act, exp)};
+        if act == exp {
+            Some(MatchState{matched:before.matched + act.len()})
+        } else {
+            None
+        }
     }
 
 }
 
-impl ActionTrait for String {
+impl ActionTrait for TowelIndex {
     fn all_actions() -> &'static [Self] {
-        &["r".to_string(), "wr".to_string(), "b".to_string(), "g".to_string(), "bwu".to_string(), "rb".to_string(), "gb".to_string(), "br".to_string()]
+        &[0,1,2,3,4,5,6,7]
     }
 
     fn cost(self) -> crate::optimize::Cost {
         1
     }
+}
+
+#[test]
+fn test_part2()
+{
+    let towels_str = vec!["r","wr","b","g","bwu","rb","gb","br"];
+    let problem1 = DesignProblem::from(towels_str, "brwrr");
+
+    assert_eq!(problem1.execute_action(MatchState{matched:0}, 0), None);
+    assert_eq!(problem1.execute_action(MatchState{matched:1}, 0), Some(MatchState{matched: 2}));
+    assert_eq!(problem1.execute_action(MatchState{matched:0}, 7), Some(MatchState{matched: 2}));
+
 }
 
 //////////////////////////////////////////
