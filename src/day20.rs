@@ -1,5 +1,6 @@
 use crate::maps::Position;
 use crate::maps::Direction;
+use crate::optimize::get_cost_cache;
 use crate::optimize::get_cost_of_state;
 use crate::optimize::Problem;
 use Direction::*;
@@ -122,11 +123,16 @@ impl Puzzle {
     }
 
     fn create_cost_map(&mut self) {
-        let end = self.map.find_first(End).unwrap();
-        for pos in self.map.area.all_positions() {
-            let cost = cost_of_shortest_path(&self.map, pos, end);
-            self.cost_map.insert(pos, cost);
+        let reverse_start = self.map.find_first(End).unwrap();
+        let reverse_end = self.map.find_first(Start).unwrap();
+
+        let problem = ShortestPathProblem{map:&self.map, start:reverse_start, end:reverse_end};
+        self.cost_map = get_cost_cache(&problem, reverse_start);
+
+        for (pos, cost) in &self.cost_map {
+            println!("({},{})->{}", pos.0, pos.1, cost);
         }
+
         assert_eq!(self.cost_of_path_without_cheating, *self.cost_map.get(&self.map.find_first(Start).unwrap()).unwrap());
     }
 

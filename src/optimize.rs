@@ -94,6 +94,7 @@ impl<P:Problem> ProblemSolver<'_, P> {
                         if VERBOSE { println!("Terminated at {:?} with cost of {}", after, cost_this_way);}
                         // not yet implemented in a generic way
                         //if VERBOSE { self.print_cache(cache);}
+                        self.cost_cache.insert(after, cost_this_way);
                         return Some((after, cost_this_way));
                     }
 
@@ -241,7 +242,6 @@ pub fn get_cost_of_state<P:Problem>(problem:&P, start_state:P::State) -> Cost wh
     }
 }
 
-#[cfg(test)]
 pub fn get_cost_cache<P:Problem>(problem:&P, start_state:P::State) -> CostCache<P::State> where <P as Problem>::Action: 'static {
 
     let mut solver = ProblemSolver::new(problem, start_state);
