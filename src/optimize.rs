@@ -196,6 +196,22 @@ impl<P:Problem> ProblemSolver<'_, P> {
         if VERBOSE { println!("Best cached paths to {:?} are {:?}", state, paths);}
         paths
     }
+
+    fn count_best_cached_paths_to(&self, state:P::State) -> usize {
+        if state == self.start_state {
+            return 1;
+        }
+        let mut paths = 0;
+        let predecessors = self.best_predecessors.get(&state).unwrap();
+        for &(predecessor,_action) in predecessors {
+            let paths_to_now = self.count_best_cached_paths_to(predecessor);
+            paths += paths_to_now;
+        }
+        if VERBOSE { println!("There are {} best cached paths to {:?}", paths, state);}
+        paths
+    }
+
+
 }
 
 // find one path with lowest cost to an end state
@@ -251,11 +267,39 @@ pub fn get_all_best_paths<P:Problem>(problem:&P, start_state:P::State) -> Vec<Ve
 
 }
 
+// find all paths with lowest cost to an end state
+pub fn count_all_best_paths<P:Problem>(problem:&P, start_state:P::State) -> usize where <P as Problem>::Action: 'static {
+
+    let mut solver1 = ProblemSolver::new(problem, start_state);
+
+    let min_cost_to_end = match solver1.find_best_path_to_end() {
+        Some((_, cost)) => cost,
+        None => {
+            if VERBOSE { println!("Did not find any path to the end from {:?}", start_state); }
+            return 0;
+        }
+    };
+
+    let mut paths = 0;
+
+    let mut solver2 = ProblemSolver::new(problem, start_state);
+    let end_states = solver2.find_all_best_path_to_end_states(min_cost_to_end);
+    for (end_state, cost_to_this_end) in end_states {
+        assert_eq!(cost_to_this_end, min_cost_to_end);
+        let paths_to_this_end_state = solver2.count_best_cached_paths_to(end_state);
+        if VERBOSE { println!("Add {} paths for end state {:?}", paths_to_this_end_state, end_state); }
+        paths += paths_to_this_end_state;
+    }
+
+    paths
+
+}
+
 
 #[cfg(test)]
 mod test {
 
-use crate::optimize::{get_all_best_paths, get_cost_cache, get_cost_of_state, Problem, ProblemSolver};
+use crate::optimize::{count_all_best_paths, get_all_best_paths, get_cost_cache, get_cost_of_state, Problem, ProblemSolver};
 
 use super::{ActionTrait};
 
@@ -349,6 +393,7 @@ fn test_all_paths() {
            vec![TestAction::Double, TestAction::Double, TestAction::Increment],
             vec![TestAction::Increment, TestAction::Double, TestAction::Increment]
         ]);
+    assert_eq!(count_all_best_paths(&problem, TestState{value:1}),2);
 
 }
 
