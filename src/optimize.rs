@@ -301,7 +301,7 @@ mod test {
 
 use crate::optimize::{count_all_best_paths, get_all_best_paths, get_cost_cache, get_cost_of_state, Problem, ProblemSolver};
 
-use super::{ActionTrait};
+use super::ActionTrait;
 
 #[derive(Debug, PartialEq, Hash, Eq, Clone, Copy)]
 struct TestState {

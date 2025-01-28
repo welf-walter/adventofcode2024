@@ -1,7 +1,9 @@
 const VERBOSE:bool=false;
 use regex::Regex;
 
-use crate::optimize::{get_all_best_paths, ActionTrait, Problem};
+use crate::optimize::{count_all_best_paths, ActionTrait, Problem};
+#[cfg(test)]
+use crate::optimize::get_all_best_paths;
 
 type Design = String;
 type Designs = Vec<String>;
@@ -181,8 +183,8 @@ fn test_part2()
     assert_eq!(brwrr_paths[1], vec![brwrr.index("b"), brwrr.index("r"), brwrr.index("wr"), brwrr.index("r")]);
 
     let bggr = DesignProblem::from(&towels_str, "bggr");
-    let bggr_paths = get_all_best_paths(&bggr, MatchState{matched:0});
-    assert_eq!(bggr_paths.len(), 1);
+    let bggr_paths = count_all_best_paths(&bggr, MatchState{matched:0});
+    assert_eq!(bggr_paths, 1);
 
     let gbbr = DesignProblem::from(&towels_str, "gbbr");
     let gbbr_paths = get_all_best_paths(&gbbr, MatchState{matched:0});
@@ -193,24 +195,24 @@ fn test_part2()
     assert_eq!(gbbr_paths[3], vec![gbbr.index("g"), gbbr.index("b"), gbbr.index("b"), gbbr.index("r")]);
 
     let rrbgbr = DesignProblem::from(&towels_str, "rrbgbr");
-    let rrbgbr_paths = get_all_best_paths(&rrbgbr, MatchState{matched:0});
-    assert_eq!(rrbgbr_paths.len(), 6);
+    let rrbgbr_paths = count_all_best_paths(&rrbgbr, MatchState{matched:0});
+    assert_eq!(rrbgbr_paths, 6);
 
     let bwurrg = DesignProblem::from(&towels_str, "bwurrg");
-    let bwurrg_paths = get_all_best_paths(&bwurrg, MatchState{matched:0});
-    assert_eq!(bwurrg_paths.len(), 1);
+    let bwurrg_paths = count_all_best_paths(&bwurrg, MatchState{matched:0});
+    assert_eq!(bwurrg_paths, 1);
 
     let brgr = DesignProblem::from(&towels_str, "brgr");
-    let brgr_paths = get_all_best_paths(&brgr, MatchState{matched:0});
-    assert_eq!(brgr_paths.len(), 2);
+    let brgr_paths = count_all_best_paths(&brgr, MatchState{matched:0});
+    assert_eq!(brgr_paths, 2);
 
     let ubwu = DesignProblem::from(&towels_str, "ubwu");
     let ubwu_paths = get_all_best_paths(&ubwu, MatchState{matched:0});
     assert_eq!(ubwu_paths.len(), 0);
 
     let bbrgwb = DesignProblem::from(&towels_str, "bbrgwb");
-    let bbrgwb_paths = get_all_best_paths(&bbrgwb, MatchState{matched:0});
-    assert_eq!(bbrgwb_paths.len(), 0);
+    let bbrgwb_paths = count_all_best_paths(&bbrgwb, MatchState{matched:0});
+    assert_eq!(bbrgwb_paths, 0);
 
 }
 
@@ -231,7 +233,7 @@ pub fn puzzle() {
     let sum_of_all_possible_combinations:usize = designs.iter().map(
         |design| {
             let problem = DesignProblem::from_string(&towels, design);
-            let path_count = get_all_best_paths(&problem, MatchState{matched:0}).len();
+            let path_count = count_all_best_paths(&problem, MatchState{matched:0});
             println!("  {} ways to build up {}", path_count, design);
             path_count
         }
