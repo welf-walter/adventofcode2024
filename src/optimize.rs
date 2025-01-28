@@ -5,7 +5,7 @@ use std::fmt::Debug;
 pub type Cost = u32;
 
 // enable for debugging
-const VERBOSE:bool = false;
+const VERBOSE:bool = true;
 
 pub trait ActionTrait:Sized+Clone+Copy+Debug {
 }
@@ -37,13 +37,20 @@ struct ProblemSolver<'p, P:Problem> {
     problem:&'p P,
     start_state:P::State,
     cost_cache:CostCache<P::State>,
-    best_predecessors:HashMap<P::State,Vec<(P::State,P::Action)>>
+    best_predecessors:HashMap<P::State,Vec<(P::State,P::Action)>>,
+    path_count_cache:HashMap<P::State,usize>
 }
 
 impl<P:Problem> ProblemSolver<'_, P> {
 
     fn new(problem:&P, start_state:P::State) -> ProblemSolver<P> {
-        ProblemSolver { problem, start_state, cost_cache:CostCache::new(), best_predecessors:HashMap::new() }
+        ProblemSolver {
+            problem,
+            start_state,
+            cost_cache:CostCache::new(),
+            best_predecessors:HashMap::new(),
+            path_count_cache:HashMap::new()
+        }
     }
 
     // from an unordered list of states, extract one with minimal cost
@@ -197,17 +204,23 @@ impl<P:Problem> ProblemSolver<'_, P> {
         paths
     }
 
-    fn count_best_cached_paths_to(&self, state:P::State) -> usize {
+    fn count_best_cached_paths_to(&mut self, state:P::State) -> usize {
+        if let Some(&count) = self.path_count_cache.get(&state) {
+            return count;
+        }
         if state == self.start_state {
             return 1;
         }
         let mut paths = 0;
-        let predecessors = self.best_predecessors.get(&state).unwrap();
-        for &(predecessor,_action) in predecessors {
+        if VERBOSE { println!("count_best_cached_paths_to {:?}", state);}
+        let predecessors = self.best_predecessors.get(&state).unwrap().clone();
+        if VERBOSE { println!("  predecessors = {:?}", predecessors);}
+        for (predecessor,_action) in predecessors {
             let paths_to_now = self.count_best_cached_paths_to(predecessor);
             paths += paths_to_now;
         }
         if VERBOSE { println!("There are {} best cached paths to {:?}", paths, state);}
+        self.path_count_cache.insert(state, paths);
         paths
     }
 
