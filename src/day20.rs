@@ -129,8 +129,10 @@ impl Puzzle {
         let problem = ShortestPathProblem{map:&self.map, start:reverse_start, end:reverse_end};
         self.cost_map = get_cost_cache(&problem, reverse_start);
 
-        for (pos, cost) in &self.cost_map {
-            println!("({},{})->{}", pos.0, pos.1, cost);
+        if VERBOSE {
+            for (pos, cost) in &self.cost_map {
+                println!("({},{})->{}", pos.0, pos.1, cost);
+            }
         }
 
         assert_eq!(self.cost_of_path_without_cheating, *self.cost_map.get(&self.map.find_first(Start).unwrap()).unwrap());
