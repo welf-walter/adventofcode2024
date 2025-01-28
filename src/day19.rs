@@ -234,7 +234,7 @@ pub fn puzzle() {
         |design| {
             let problem = DesignProblem::from_string(&towels, design);
             let path_count = count_all_best_paths(&problem, MatchState{matched:0});
-            println!("  {} ways to build up {}", path_count, design);
+            if VERBOSE { println!("  {} ways to build up {}", path_count, design);}
             path_count
         }
     ).sum();

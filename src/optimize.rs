@@ -5,7 +5,7 @@ use std::fmt::Debug;
 pub type Cost = u32;
 
 // enable for debugging
-const VERBOSE:bool = true;
+const VERBOSE:bool = false;
 
 pub trait ActionTrait:Sized+Clone+Copy+Debug {
 }
