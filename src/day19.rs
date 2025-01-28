@@ -231,7 +231,9 @@ pub fn puzzle() {
     let sum_of_all_possible_combinations:usize = designs.iter().map(
         |design| {
             let problem = DesignProblem::from_string(&towels, design);
-            get_all_best_paths(&problem, MatchState{matched:0}).len()
+            let path_count = get_all_best_paths(&problem, MatchState{matched:0}).len();
+            println!("  {} ways to build up {}", path_count, design);
+            path_count
         }
     ).sum();
 
