@@ -75,6 +75,24 @@ fn direction_keys_to_direction_keys(direction_keys:&Vec<DirectionKey>) -> Vec<Di
     keys
 }
 
+fn direction_keys_for_code(code:&str) -> Vec<DirectionKey> {
+    let numeric_keys = code.chars().collect::<Vec<char>>();
+    let direction_keys = numeric_keys_to_direction_keys(&numeric_keys);
+    let direction_keys2 = direction_keys_to_direction_keys(&direction_keys);
+    let direction_keys3 = direction_keys_to_direction_keys(&direction_keys2);
+    direction_keys3
+}
+
+fn calculate_complexity(code:&str) -> u32 {
+
+    let direction_keys = direction_keys_for_code(code);
+    let length = direction_keys.len() as u32;
+
+    let numeric:u32 = code.split('A').next().unwrap().parse().unwrap();
+
+    length * numeric
+}
+
 #[test]
 fn test() {
     let numeric_keys = "029A".chars().collect::<Vec<char>>();
@@ -88,4 +106,15 @@ fn test() {
     let direction_keys3 = direction_keys_to_direction_keys(&direction_keys2_alt);
     assert_eq!(direction_keys3, "<vA<AA>>^AvAA<^A>A<<vA>>^AvA^A<vA>^A<<vA>^A>AAvA^A<<vA>A>^AAAvA<^A>A".chars().collect::<Vec<char>>());
 
+    assert_eq!(direction_keys_for_code("029A"), "<vA<AA>>^AvAA<^A>A<<vA>>^AvA^A<vA>^A<<vA>^A>AAvA^A<<vA>A>^AAAvA<^A>A".chars().collect::<Vec<char>>());
+    assert_eq!(direction_keys_for_code("980A"), "<<vA>>^AAAvA^A<vA<AA>>^AvAA<^A>A<<vA>A>^AAAvA<^A>A<vA>^A<A>A".chars().collect::<Vec<char>>());
+    assert_eq!(direction_keys_for_code("179A"), "<<vA>>^A<vA<A>>^AAvAA<^A>A<<vA>>^AAvA^A<vA>^AA<A>A<<vA>A>^AAAvA<^A>A".chars().collect::<Vec<char>>());
+    assert_eq!(direction_keys_for_code("456A"), "<<vA>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<<vA>A>^AAvA<^A>A".chars().collect::<Vec<char>>());
+    assert_eq!(direction_keys_for_code("379A"), "<<vA>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<<vA>A>^AAAvA<^A>A".chars().collect::<Vec<char>>());
+
+    assert_eq!(calculate_complexity("029A"), 68 *  29);
+    assert_eq!(calculate_complexity("980A"), 60 * 980);
+    assert_eq!(calculate_complexity("179A"), 68 * 179);
+    assert_eq!(calculate_complexity("456A"), 64 * 456);
+    assert_eq!(calculate_complexity("379A"), 64 * 379);
 }
