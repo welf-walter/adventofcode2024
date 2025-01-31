@@ -31,12 +31,23 @@ type DirectionKey = char;
 
 const DIRECTION_KEY_START : Position = (2,0);
 
+fn direction_key_to_position(direction_key:DirectionKey) -> Position {
+    match direction_key {
+        '^' => (1,0),
+        'A' => (2,0),
+        '<' => (0,1),
+        'v' => (1,1),
+        '>' => (2,1),
+        other => panic!("Unexpected numeric key {}", other)
+    }
+}
+
 fn positions_to_keys(from:Position, to:Position) -> Vec<DirectionKey> {
     let mut keys = Vec::new();
     let mut current = from;
     while current.0 < to.0 { keys.push('>'); current.0 += 1;}
-    while current.1 < to.1 { keys.push('v'); current.1 += 1;}
     while current.0 > to.0 { keys.push('<'); current.0 -= 1;}
+    while current.1 < to.1 { keys.push('v'); current.1 += 1;}
     while current.1 > to.1 { keys.push('^'); current.1 -= 1;}
     keys.push('A');
     keys
@@ -53,9 +64,28 @@ fn numeric_keys_to_direction_keys(numeric_keys:&Vec<NumericKey>) -> Vec<Directio
     keys
 }
 
+fn direction_keys_to_direction_keys(direction_keys:&Vec<DirectionKey>) -> Vec<DirectionKey> {
+    let mut keys = Vec::new();
+    let mut pos = DIRECTION_KEY_START;
+    for &direction_key in direction_keys {
+        let to = direction_key_to_position(direction_key);
+        keys.append(&mut positions_to_keys(pos, to));
+        pos = to;
+    }
+    keys
+}
+
 #[test]
 fn test() {
     let numeric_keys = "029A".chars().collect::<Vec<char>>();
     let direction_keys = numeric_keys_to_direction_keys(&numeric_keys);
     assert_eq!(direction_keys, "<A^A>^^AvvvA".chars().collect::<Vec<char>>());
+
+    let direction_keys2 = direction_keys_to_direction_keys(&direction_keys);
+    assert_eq!(direction_keys2, "<<vA>>^A<A>AvA<^AA>A<vAAA>^A".chars().collect::<Vec<char>>());
+
+    let direction_keys2_alt = "v<<A>>^A<A>AvA<^AA>A<vAAA>^A".chars().collect::<Vec<char>>();
+    let direction_keys3 = direction_keys_to_direction_keys(&direction_keys2_alt);
+    assert_eq!(direction_keys3, "<vA<AA>>^AvAA<^A>A<<vA>>^AvA^A<vA>^A<<vA>^A>AAvA^A<<vA>A>^AAAvA<^A>A".chars().collect::<Vec<char>>());
+
 }
