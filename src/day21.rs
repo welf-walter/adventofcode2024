@@ -31,13 +31,26 @@ type DirectionKey = char;
 
 const DIRECTION_KEY_START : Position = (2,0);
 
-fn positions_to_keys(from:Position, to:Position) -> Vec<DirectionKey> {
-    let mut keys = Vec::new();
+fn positions_to_all_possible_keys(from:Position, to:Position) -> Vec<Vec<DirectionKey>> {
+    let mut all_keys = Vec::new();
     let mut current = from;
+    while current != to {
+        let all_keys_to_now = all_keys.clone();
+        all_keys = Vec::new();
+        for action in ['>', 'v', '<', '^'] {
+            let action_ok = match action {
+                '>' => { if current.0 < to.0 { current.0 += 1; true } else { false } },
+                'v' => { if current.1 < to.1 { current.1 += 1; true } else { false } },
+                '<' => { if current.0 > to.0 { current.0 -= 1; true } else { false } },
+                '^' => { if current.1 > to.1 { current.1 -= 1; true } else { false } },
+                other => panic!("unexpected {}", other)
+            }
+            all_keys_to_now
+            all_keys.push()
+        }
+
+    }
     while current.0 < to.0 { keys.push('>'); current.0 += 1;}
-    while current.1 < to.1 { keys.push('v'); current.1 += 1;}
-    while current.0 > to.0 { keys.push('<'); current.0 -= 1;}
-    while current.1 > to.1 { keys.push('^'); current.1 -= 1;}
     keys.push('A');
     keys
 }
