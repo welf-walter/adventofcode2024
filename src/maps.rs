@@ -1,9 +1,9 @@
 pub type Position = (/* x: */usize,/* y: */usize);
 
-fn left (pos:Position) -> Position { (pos.0-1,pos.1  ) }
-fn right(pos:Position) -> Position { (pos.0+1,pos.1  ) }
-fn up   (pos:Position) -> Position { (pos.0  ,pos.1-1) }
-fn down (pos:Position) -> Position { (pos.0  ,pos.1+1) }
+pub fn left (pos:Position) -> Position { (pos.0-1,pos.1  ) }
+pub fn right(pos:Position) -> Position { (pos.0+1,pos.1  ) }
+pub fn up   (pos:Position) -> Position { (pos.0  ,pos.1-1) }
+pub fn down (pos:Position) -> Position { (pos.0  ,pos.1+1) }
 
 //////////////////////////////////////////
 /// Direction
