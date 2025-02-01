@@ -1,5 +1,10 @@
 pub type Position = (/* x: */usize,/* y: */usize);
 
+fn left (pos:Position) -> Position { (pos.0-1,pos.1  ) }
+fn right(pos:Position) -> Position { (pos.0+1,pos.1  ) }
+fn up   (pos:Position) -> Position { (pos.0  ,pos.1-1) }
+fn down (pos:Position) -> Position { (pos.0  ,pos.1+1) }
+
 //////////////////////////////////////////
 /// Direction
 //////////////////////////////////////////
@@ -120,10 +125,10 @@ impl Area {
         let w = self.width-1;
         let h = self.height-1;
         match direction {
-            Up    => { if pos.1 > 0 { return Some((pos.0  ,pos.1-1)); } else { return None; }},
-            Right => { if pos.0 < w { return Some((pos.0+1,pos.1  )); } else { return None; }},
-            Down  => { if pos.1 < h { return Some((pos.0  ,pos.1+1)); } else { return None; }},
-            Left  => { if pos.0 > 0 { return Some((pos.0-1,pos.1  )); } else { return None; }},
+            Up    => { if pos.1 > 0 { return Some(up   (pos)); } else { return None; }},
+            Right => { if pos.0 < w { return Some(right(pos)); } else { return None; }},
+            Down  => { if pos.1 < h { return Some(down (pos)); } else { return None; }},
+            Left  => { if pos.0 > 0 { return Some(left (pos)); } else { return None; }},
             UpRight   => { if (pos.0 < w) & (pos.1 > 0) { return Some((pos.0+1,pos.1-1)); } else { return None; }},
             DownRight => { if (pos.0 < h) & (pos.1 < w) { return Some((pos.0+1,pos.1+1)); } else { return None; }},
             DownLeft  => { if (pos.0 > 0) & (pos.1 < w) { return Some((pos.0-1,pos.1+1)); } else { return None; }},
