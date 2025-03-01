@@ -44,14 +44,29 @@ fn direction_key_to_position(direction_key:DirectionKey) -> Position {
     }
 }
 
-fn positions_to_keys(from:Position, to:Position, invalid_position:Position) -> Vec<DirectionKey> {
+fn next_direction(direction_key:DirectionKey) -> DirectionKey {
+    match direction_key {
+        '^' => '>',
+        '>' => 'v',
+        'v' => '<',
+        '<' => '^',
+        other => panic!("Unexpected direction key {}", other)
+    }
+}
+
+fn positions_to_keys(from:Position, to:Position, invalid_position:Position, direction_hint:DirectionKey) -> Vec<DirectionKey> {
     let mut keys = Vec::new();
     let mut current = from;
+    let mut direction = direction_hint;
     while current != to {
-        while current.1 < to.1 && down(current) != invalid_position { keys.push('v'); current = down(current);}
-        while current.0 < to.0                                           { keys.push('>'); current = right(current);}
-        while current.0 > to.0 && left(current) != invalid_position { keys.push('<'); current = left(current);}
-        while current.1 > to.1 && up  (current) != invalid_position { keys.push('^'); current = up(current);}
+        match direction {
+            '>' => { while current.0 < to.0 && right(current) != invalid_position { keys.push('>'); current = right(current);} },
+            '^' => { while current.1 > to.1 && up   (current) != invalid_position { keys.push('^'); current = up(current);} },
+            'v' => { while current.1 < to.1 && down (current) != invalid_position { keys.push('v'); current = down(current);} },
+            '<' => { while current.0 > to.0 && left (current) != invalid_position { keys.push('<'); current = left(current);} },
+            other => panic!("Unexpected direction key {}", other)
+        }
+        direction = next_direction(direction);
     }
     keys.push('A');
     keys
@@ -73,7 +88,7 @@ fn direction_keys_to_direction_keys(direction_keys:&Vec<DirectionKey>) -> Vec<Di
     let mut pos = DIRECTION_KEY_START;
     for &direction_key in direction_keys {
         let to = direction_key_to_position(direction_key);
-        keys.append(&mut positions_to_keys(pos, to, DIRECTION_KEY_GAP));
+        keys.append(&mut positions_to_keys2(pos, to, DIRECTION_KEY_GAP));
         pos = to;
     }
     keys
