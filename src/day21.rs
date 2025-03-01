@@ -1,5 +1,5 @@
 
-use std::{char, cmp::min};
+use std::char;
 
 use crate::maps::Position;
 
@@ -43,7 +43,6 @@ fn direction_key_to_position(direction_key:DirectionKey) -> Position {
 
 fn positions_to_all_possible_keys(from:Position, to:Position) -> Vec<Vec<DirectionKey>> {
     let mut all_keys = Vec::new();
-    let mut current = from;
 
     if from == to {
         return vec![vec!['A']];
@@ -88,6 +87,10 @@ fn vecvec_to_strvec(vecvec:Vec<Vec<DirectionKey>>) -> Vec<String> {
     vecvec.iter().map(|vec| String::from_iter(vec.iter())).collect()
 }
 
+fn vec_to_str(vec:Vec<DirectionKey>) -> String {
+    String::from_iter(vec.iter())
+}
+
 #[test]
 fn test_positions_to_all_possible_keys() {
     assert_eq!(vecvec_to_strvec(positions_to_all_possible_keys((2,2),(2,2))),vec!["A"]);
@@ -95,7 +98,7 @@ fn test_positions_to_all_possible_keys() {
     assert_eq!(vecvec_to_strvec(positions_to_all_possible_keys((2,2),(3,3))),vec![">vA","v>A"]);
 }
 
-fn best_keys_for_direction_keys1(direction_keys:&Vec<DirectionKey>) -> Vec<DirectionKey> {
+fn best_keys_for_direction_keys2(direction_keys:&Vec<DirectionKey>) -> Vec<DirectionKey> {
     let mut keys = Vec::new();
     let mut pos = DIRECTION_KEY_START;
     for &numeric_key in direction_keys {
@@ -109,29 +112,60 @@ fn best_keys_for_direction_keys1(direction_keys:&Vec<DirectionKey>) -> Vec<Direc
     keys
 }
 
+struct Result2 {
+    keys2:Vec<DirectionKey>,
+    keys3:Vec<DirectionKey>
+}
+
+fn best_keys_for_direction_keys1(direction_keys:&Vec<DirectionKey>) -> Result2 {
+    let mut keys2 = Vec::new();
+    let mut keys3 = Vec::new();
+    let mut pos = DIRECTION_KEY_START;
+    for &numeric_key in direction_keys {
+        let to = direction_key_to_position(numeric_key);
+        let all_possible_keys = positions_to_all_possible_keys(pos, to);
+
+        let all_keys3:Vec<Vec<DirectionKey>> = all_possible_keys.iter().map(best_keys_for_direction_keys2).collect();
+        let min3 = all_keys3.iter().map(|x|x.len()).min().unwrap();
+        let best_index = all_keys3.iter().position(|x| x.len() == min3).unwrap();
+        let mut best_keys3 = all_keys3[best_index].clone();
+        let mut best_keys2 = all_possible_keys[best_index].clone();
+
+        keys2.append(&mut best_keys2);
+        keys3.append(&mut best_keys3);
+
+        pos = to;
+    }
+    Result2 {keys2, keys3}
+}
+
 struct Result {
     keys1:Vec<DirectionKey>,
-    keys2:Vec<DirectionKey>
+    keys2:Vec<DirectionKey>,
+    keys3:Vec<DirectionKey>
 }
 
 fn best_keys_for_numeric_keys(numeric_keys:&Vec<NumericKey>) -> Result {
     let mut keys1 = Vec::new();
     let mut keys2 = Vec::new();
+    let mut keys3 = Vec::new();
     let mut pos = NUMERIC_KEY_START;
     for &numeric_key in numeric_keys {
         let to = numeric_key_to_position(numeric_key);
         let all_possible_keys = positions_to_all_possible_keys(pos, to);
-        let all_keys2:Vec<Vec<DirectionKey>> = all_possible_keys.iter().map(best_keys_for_direction_keys1).collect();
-        let min2 = all_keys2.iter().map(|x|x.len()).min().unwrap();
-        let best_index = all_keys2.iter().position(|x| x.len() == min2).unwrap();
-        let mut best_keys2 = all_keys2[best_index].clone();
+        let all_keys2:Vec<Result2> = all_possible_keys.iter().map(best_keys_for_direction_keys1).collect();
+        let min3 = all_keys2.iter().map(|x|x.keys3.len()).min().unwrap();
+        let best_index = all_keys2.iter().position(|x| x.keys3.len() == min3).unwrap();
+        let mut best_keys3 = all_keys2[best_index].keys3.clone();
+        let mut best_keys2 = all_keys2[best_index].keys2.clone();
         let mut best_keys = all_possible_keys[best_index].clone();
 
         keys1.append(&mut best_keys);
         keys2.append(&mut best_keys2);
+        keys3.append(&mut best_keys3);
         pos = to;
     }
-    Result{keys1, keys2}
+    Result{keys1, keys2, keys3}
 }
 
 #[test]
@@ -139,7 +173,10 @@ fn test() {
     let numeric_keys = "029A".chars().collect::<Vec<char>>();
     let result = best_keys_for_numeric_keys(&numeric_keys);
 
-    assert_eq!(result.keys1, "<A^A>^^AvvvA".chars().collect::<Vec<char>>());
+    assert_eq!(vec_to_str(result.keys1), "<A^A>^^AvvvA");
 //    assert_eq!(result.keys2, "v<<A>>^A<A>AvA<^AA>A<vAAA>^A".chars().collect::<Vec<char>>());
-    assert_eq!(result.keys2, "v<<A>>^A<A>AvA<^AA>Av<AAA>^A".chars().collect::<Vec<char>>());
+    assert_eq!(vec_to_str(result.keys2), "v<<A>>^A<A>AvA<^AA>Av<AAA>^A");
+//    assert_eq!(result.keys3, "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A".chars().collect::<Vec<char>>());
+    assert_eq!(vec_to_str(result.keys3), "v<A<AA>>^AvAA<^A>Av<<A>>^AvA^Av<A>^Av<<A>^A>AAvA^Av<A<A>>^AAAvA<^A>A");
+    
 }
