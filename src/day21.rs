@@ -1,12 +1,13 @@
 
 use std::char;
 
-use crate::maps::Position;
+use crate::maps::{left, right, up, down, Position};
 
 // 0 1 2 3 4 5 6 7 8 9 A
 type NumericKey = char;
 
 const NUMERIC_KEY_START : Position = (2,3);
+const NUMERIC_KEY_GAP   : Position = (0,3);
 
 fn numeric_key_to_position(numeric_key:NumericKey) -> Position {
     match numeric_key {
@@ -30,6 +31,8 @@ fn numeric_key_to_position(numeric_key:NumericKey) -> Position {
 type DirectionKey = char;
 
 const DIRECTION_KEY_START : Position = (2,0);
+const DIRECTION_KEY_GAP   : Position = (0,0);
+
 fn direction_key_to_position(direction_key:DirectionKey) -> Position {
     match direction_key {
         '^' => (1,0),
@@ -41,39 +44,39 @@ fn direction_key_to_position(direction_key:DirectionKey) -> Position {
     }
 }
 
-fn positions_to_all_possible_keys(from:Position, to:Position) -> Vec<Vec<DirectionKey>> {
+fn positions_to_all_possible_keys(from:Position, to:Position, invalid_position:Position) -> Vec<Vec<DirectionKey>> {
     let mut all_keys = Vec::new();
 
     if from == to {
         return vec![vec!['A']];
     }
 
-    if from.0 < to.0 { // Right
-        let all_keys_to_now = positions_to_all_possible_keys((from.0+1,from.1  ), to);
+    if from.0 < to.0 && right(from) != invalid_position { // Right
+        let all_keys_to_now = positions_to_all_possible_keys(right(from), to, invalid_position);
         for mut keys in all_keys_to_now.into_iter() {
             keys.insert(0, '>');
             all_keys.push(keys);
         }
     }
 
-    if from.1 < to.1 { // Down
-        let all_keys_to_now = positions_to_all_possible_keys((from.0  ,from.1+1), to);
+    if from.1 < to.1 && down(from) != invalid_position { // Down
+        let all_keys_to_now = positions_to_all_possible_keys(down(from), to, invalid_position);
         for mut keys in all_keys_to_now.into_iter() {
             keys.insert(0, 'v');
             all_keys.push(keys);
         }
     }
 
-    if from.0 > to.0 { // Left
-        let all_keys_to_now = positions_to_all_possible_keys((from.0-1,from.1  ), to);
+    if from.0 > to.0 && left(from) != invalid_position { // Left
+        let all_keys_to_now = positions_to_all_possible_keys(left(from), to, invalid_position);
         for mut keys in all_keys_to_now.into_iter() {
             keys.insert(0, '<');
             all_keys.push(keys);
         }
     }
 
-    if from.1 > to.1 { // Up
-        let all_keys_to_now = positions_to_all_possible_keys((from.0  ,from.1-1), to);
+    if from.1 > to.1 && up(from) != invalid_position { // Up
+        let all_keys_to_now = positions_to_all_possible_keys(up(from), to, invalid_position);
         for mut keys in all_keys_to_now.into_iter() {
             keys.insert(0, '^');
             all_keys.push(keys);
@@ -93,9 +96,10 @@ fn vec_to_str(vec:&Vec<DirectionKey>) -> String {
 
 #[test]
 fn test_positions_to_all_possible_keys() {
-    assert_eq!(vecvec_to_strvec(positions_to_all_possible_keys((2,2),(2,2))),vec!["A"]);
-    assert_eq!(vecvec_to_strvec(positions_to_all_possible_keys((2,2),(3,2))),vec![">A"]);
-    assert_eq!(vecvec_to_strvec(positions_to_all_possible_keys((2,2),(3,3))),vec![">vA","v>A"]);
+    assert_eq!(vecvec_to_strvec(positions_to_all_possible_keys((2,2),(2,2),(0,0))),vec!["A"]);
+    assert_eq!(vecvec_to_strvec(positions_to_all_possible_keys((2,2),(3,2),(0,0))),vec![">A"]);
+    assert_eq!(vecvec_to_strvec(positions_to_all_possible_keys((2,2),(3,3),(0,0))),vec![">vA","v>A"]);
+    assert_eq!(vecvec_to_strvec(positions_to_all_possible_keys((2,2),(3,3),(2,3))),vec![">vA"]);
 }
 
 fn best_keys_for_direction_keys2(direction_keys:&Vec<DirectionKey>) -> Vec<DirectionKey> {
@@ -103,7 +107,7 @@ fn best_keys_for_direction_keys2(direction_keys:&Vec<DirectionKey>) -> Vec<Direc
     let mut pos = DIRECTION_KEY_START;
     for &numeric_key in direction_keys {
         let to = direction_key_to_position(numeric_key);
-        let all_possible_keys = positions_to_all_possible_keys(pos, to);
+        let all_possible_keys = positions_to_all_possible_keys(pos, to, DIRECTION_KEY_GAP);
         // todo: find best of these
         let mut any_possible_key = all_possible_keys[0].clone();
         keys.append(&mut any_possible_key);
@@ -123,7 +127,7 @@ fn best_keys_for_direction_keys1(direction_keys:&Vec<DirectionKey>) -> Result2 {
     let mut pos = DIRECTION_KEY_START;
     for &numeric_key in direction_keys {
         let to = direction_key_to_position(numeric_key);
-        let all_possible_keys = positions_to_all_possible_keys(pos, to);
+        let all_possible_keys = positions_to_all_possible_keys(pos, to, DIRECTION_KEY_GAP);
 
         let all_keys3:Vec<Vec<DirectionKey>> = all_possible_keys.iter().map(best_keys_for_direction_keys2).collect();
         let min3 = all_keys3.iter().map(|x|x.len()).min().unwrap();
@@ -152,7 +156,7 @@ fn best_keys_for_numeric_keys(numeric_keys:&Vec<NumericKey>) -> Result {
     let mut pos = NUMERIC_KEY_START;
     for &numeric_key in numeric_keys {
         let to = numeric_key_to_position(numeric_key);
-        let all_possible_keys = positions_to_all_possible_keys(pos, to);
+        let all_possible_keys = positions_to_all_possible_keys(pos, to, NUMERIC_KEY_GAP);
         let all_keys2:Vec<Result2> = all_possible_keys.iter().map(best_keys_for_direction_keys1).collect();
         let min3 = all_keys2.iter().map(|x|x.keys3.len()).min().unwrap();
         let best_index = all_keys2.iter().position(|x| x.keys3.len() == min3).unwrap();
@@ -194,19 +198,18 @@ fn test() {
     let code3 = "179A";
     let result3 = best_keys_for_numeric_keys(&code3.chars().collect());
                                           //<v<A>>^A<vA<A>>^AAvAA<^A>A<v<A>>^AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A
-    assert_eq!(vec_to_str(&result3.keys3), "<v<A>>^A<vA<A>>^AAvAA<^A>A<v<A>>^AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A");
+    assert_eq!(vec_to_str(&result3.keys3), "v<<A>>^Av<A<A>>^AAvAA<^A>Av<<A>>^AAvA^Av<A>^AA<A>Av<A<A>>^AAAvA<^A>A");
 
     let code4 = "456A";
     let result4 = best_keys_for_numeric_keys(&code4.chars().collect());
     println!("{}", vec_to_str(&result4.keys3));
                                           //<v<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<v<A>A>^AAvA<^A>A
-    assert_eq!(vec_to_str(&result4.keys3), "v<A<AA>>^AAvA<^A>AAvA^Av<A>^A<A>Av<A>^A<A>Av<A<A>>^AAvA<^A>A");
-    //                      My solution is wrong!! I don't care about illegal positions!!
+    assert_eq!(vec_to_str(&result4.keys3), "v<<A>>^AAv<A<A>>^AAvAA<^A>Av<A>^A<A>Av<A>^A<A>Av<A<A>>^AAvA<^A>A");
 
     let code5 = "379A";
     let result5 = best_keys_for_numeric_keys(&code5.chars().collect());
     //                                      <v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A
-    assert_eq!(vec_to_str(&result4.keys3), "v<<A>>^AvA^Av<A<AA>>^AAvA<^A>AAvA^Av<A>^AA<A>Av<A<A>>^AAAvA<^A>A");
+    assert_eq!(vec_to_str(&result4.keys3), "v<<A>>^AAv<A<A>>^AAvAA<^A>Av<A>^A<A>Av<A>^A<A>Av<A<A>>^AAvA<^A>A");
 
     assert_eq!(calculate_complexity(code1, &result1.keys3), 68 * 29);
     assert_eq!(calculate_complexity(code2, &result2.keys3), 60 * 980);
