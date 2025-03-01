@@ -82,23 +82,27 @@ fn vecvec_to_strvec(vecvec:Vec<Vec<DirectionKey>>) -> Vec<String> {
 fn test_positions_to_all_possible_keys() {
     assert_eq!(vecvec_to_strvec(positions_to_all_possible_keys((2,2),(2,2))),vec!["A"]);
     assert_eq!(vecvec_to_strvec(positions_to_all_possible_keys((2,2),(3,2))),vec![">A"]);
-    assert_eq!(vecvec_to_strvec(positions_to_all_possible_keys((2,2),(3,3))),vec![">vA","v>A"]);    
+    assert_eq!(vecvec_to_strvec(positions_to_all_possible_keys((2,2),(3,3))),vec![">vA","v>A"]);
 }
 
-fn numeric_keys_to_direction_keys(numeric_keys:&Vec<NumericKey>) -> Vec<DirectionKey> {
+
+fn best_keys_for_numeric_keys(numeric_keys:&Vec<NumericKey>) -> Vec<DirectionKey> {
     let mut keys = Vec::new();
     let mut pos = NUMERIC_KEY_START;
-/*    for &numeric_key in numeric_keys {
+    for &numeric_key in numeric_keys {
         let to = numeric_key_to_position(numeric_key);
-        keys.append(&mut positions_to_keys(pos, to));
+        let all_possible_keys = positions_to_all_possible_keys(pos, to);
+        // todo: find best of these
+        let mut any_possible_key = all_possible_keys[0].clone();
+        keys.append(&mut any_possible_key);
         pos = to;
-    }*/
+    }
     keys
 }
 
 #[test]
 fn test() {
     let numeric_keys = "029A".chars().collect::<Vec<char>>();
-    let direction_keys = numeric_keys_to_direction_keys(&numeric_keys);
-    //assert_eq!(direction_keys, "<A^A>^^AvvvA".chars().collect::<Vec<char>>());
+    let direction_keys = best_keys_for_numeric_keys(&numeric_keys);
+    assert_eq!(direction_keys, "<A^A>^^AvvvA".chars().collect::<Vec<char>>());
 }
