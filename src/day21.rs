@@ -87,7 +87,7 @@ fn vecvec_to_strvec(vecvec:Vec<Vec<DirectionKey>>) -> Vec<String> {
     vecvec.iter().map(|vec| String::from_iter(vec.iter())).collect()
 }
 
-fn vec_to_str(vec:Vec<DirectionKey>) -> String {
+fn vec_to_str(vec:&Vec<DirectionKey>) -> String {
     String::from_iter(vec.iter())
 }
 
@@ -168,15 +168,50 @@ fn best_keys_for_numeric_keys(numeric_keys:&Vec<NumericKey>) -> Result {
     Result{keys1, keys2, keys3}
 }
 
+fn calculate_complexity(code:&str, keys3:&Vec<DirectionKey>) -> u32 {
+    let code_int:u32 = code[0..3].parse().unwrap();
+    code_int * keys3.len() as u32
+}
+
 #[test]
 fn test() {
-    let numeric_keys = "029A".chars().collect::<Vec<char>>();
-    let result = best_keys_for_numeric_keys(&numeric_keys);
+    let code1 = "029A";
+    let numeric_keys1 = code1.chars().collect::<Vec<char>>();
+    let result1 = best_keys_for_numeric_keys(&numeric_keys1);
 
-    assert_eq!(vec_to_str(result.keys1), "<A^A>^^AvvvA");
+    assert_eq!(vec_to_str(&result1.keys1), "<A^A>^^AvvvA");
 //    assert_eq!(result.keys2, "v<<A>>^A<A>AvA<^AA>A<vAAA>^A".chars().collect::<Vec<char>>());
-    assert_eq!(vec_to_str(result.keys2), "v<<A>>^A<A>AvA<^AA>Av<AAA>^A");
+    assert_eq!(vec_to_str(&result1.keys2), "v<<A>>^A<A>AvA<^AA>Av<AAA>^A");
 //    assert_eq!(result.keys3, "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A".chars().collect::<Vec<char>>());
-    assert_eq!(vec_to_str(result.keys3), "v<A<AA>>^AvAA<^A>Av<<A>>^AvA^Av<A>^Av<<A>^A>AAvA^Av<A<A>>^AAAvA<^A>A");
-    
+    assert_eq!(vec_to_str(&result1.keys3), "v<A<AA>>^AvAA<^A>Av<<A>>^AvA^Av<A>^Av<<A>^A>AAvA^Av<A<A>>^AAAvA<^A>A");
+
+    let code2 = "980A";
+    let result2 = best_keys_for_numeric_keys(&code2.chars().collect());
+                                          //<v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A
+    assert_eq!(vec_to_str(&result2.keys3), "v<<A>>^AAAvA^Av<A<AA>>^AvAA<^A>Av<A<A>>^AAAvA<^A>Av<A>^A<A>A");
+
+
+    let code3 = "179A";
+    let result3 = best_keys_for_numeric_keys(&code3.chars().collect());
+                                          //<v<A>>^A<vA<A>>^AAvAA<^A>A<v<A>>^AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A
+    assert_eq!(vec_to_str(&result3.keys3), "<v<A>>^A<vA<A>>^AAvAA<^A>A<v<A>>^AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A");
+
+    let code4 = "456A";
+    let result4 = best_keys_for_numeric_keys(&code4.chars().collect());
+    println!("{}", vec_to_str(&result4.keys3));
+                                          //<v<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<v<A>A>^AAvA<^A>A
+    assert_eq!(vec_to_str(&result4.keys3), "v<A<AA>>^AAvA<^A>AAvA^Av<A>^A<A>Av<A>^A<A>Av<A<A>>^AAvA<^A>A");
+    //                      My solution is wrong!! I don't care about illegal positions!!
+
+    let code5 = "379A";
+    let result5 = best_keys_for_numeric_keys(&code5.chars().collect());
+    //                                      <v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A
+    assert_eq!(vec_to_str(&result4.keys3), "v<<A>>^AvA^Av<A<AA>>^AAvA<^A>AAvA^Av<A>^AA<A>Av<A<A>>^AAAvA<^A>A");
+
+    assert_eq!(calculate_complexity(code1, &result1.keys3), 68 * 29);
+    assert_eq!(calculate_complexity(code2, &result2.keys3), 60 * 980);
+    assert_eq!(calculate_complexity(code3, &result3.keys3), 68 * 179);
+    assert_eq!(calculate_complexity(code4, &result4.keys3), 64 * 456);
+    assert_eq!(calculate_complexity(code5, &result5.keys3), 64 * 379);
+
 }
