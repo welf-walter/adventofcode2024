@@ -128,10 +128,13 @@ Day 21, Part 2: Sum of 8 level complexities for 5 codes is 50735734 (calculated 
 Day 21, Part 2: Sum of 9 level complexities for 5 codes is 126219900 (calculated in 9 ms)
 Day 21, Part 2: Sum of 10 level complexities for 5 codes is 313902820 (calculated in 14 ms)
 Day 21, Part 2: Sum of 11 level complexities for 5 codes is 781007860 (calculated in 29 ms)
-Day 21, Part 2: Sum of 12 level complexities for 5 codes is 1942592046 (calculated in 64 ms)
-thread 'main' panicked at /rustc/3f5fd8dd41153bc5fdca9427e9e05be2c767ba23/library/core/src/iter/traits/accum.rs:149:1:
-attempt to add with overflow
-
+Day 21, Part 2: Sum of 12 level complexities for 5 codes is 1942592046 (calculated in 69 ms)
+Day 21, Part 2: Sum of 13 level complexities for 5 codes is 4832787646 (calculated in 155 ms)
+Day 21, Part 2: Sum of 14 level complexities for 5 codes is 12021697232 (calculated in 417 ms)
+Day 21, Part 2: Sum of 15 level complexities for 5 codes is 29905931736 (calculated in 1129 ms)
+Day 21, Part 2: Sum of 16 level complexities for 5 codes is 74394435964 (calculated in 2986 ms)
+Day 21, Part 2: Sum of 17 level complexities for 5 codes is 185065364652 (calculated in 6613 ms)
+Day 21, Part 2: Sum of 18 level complexities for 5 codes is 460374293764 (calculated in 18681 ms)
  */
 
 type Cache = HashMap<(/*from:*/ Position, /*to:*/ Position, /*n:*/ u32), Vec<DirectionKey>>;
@@ -170,6 +173,40 @@ fn best_keys_for_direction_keys_n(direction_keys:&Vec<DirectionKey>, n:u32, cach
     keys
 }
 
+type CacheLen = HashMap<(/*from:*/ Position, /*to:*/ Position, /*n:*/ u32), usize>;
+
+fn best_keylen_for_direction_keys_n(direction_keys:&Vec<DirectionKey>, n:u32, cache:&mut CacheLen) -> usize {
+    let mut keylen: usize = 0;
+    let mut pos = DIRECTION_KEY_START;
+    for &direction_key in direction_keys {
+        let to = direction_key_to_position(direction_key);
+        if cache.contains_key(&(pos, to, n)) {
+            let best_keylen = cache.get(&(pos, to, n)).unwrap().clone();
+            keylen += best_keylen;
+        } else {
+            let all_possible_keys = positions_to_all_possible_keys(pos, to, DIRECTION_KEY_GAP);
+
+            if n == 1 {
+                // when at end of recursion, all sequences are equally good
+                let any_keylen = all_possible_keys[0].len();
+                cache.insert((pos, to, n), any_keylen);
+                keylen += any_keylen;
+            } else {
+                let all_key_len:Vec<usize> =
+                  all_possible_keys.iter().map(|keys|best_keylen_for_direction_keys_n(keys, n-1, cache)).collect();
+                let minlen = all_key_len.iter().min().unwrap();
+
+                cache.insert((pos, to, n), *minlen);
+                keylen += minlen;
+            }
+        }
+
+        pos = to;
+    }
+
+    keylen
+}
+
 fn best_keys_for_numeric_keys_n(numeric_keys:&Vec<NumericKey>, n:u32) -> Vec<DirectionKey> {
     let mut keys = Vec::new();
     let mut pos = NUMERIC_KEY_START;
@@ -196,9 +233,32 @@ fn best_keys_for_numeric_keys_n(numeric_keys:&Vec<NumericKey>, n:u32) -> Vec<Dir
     keys
 }
 
-fn calculate_complexity(code:&str, keys:&Vec<DirectionKey>) -> u64 {
+fn best_keylen_for_numeric_keys_n(numeric_keys:&Vec<NumericKey>, n:u32) -> usize {
+    let mut keylen:usize = 0;
+    let mut pos = NUMERIC_KEY_START;
+    let mut cache = CacheLen::new();
+    for &numeric_key in numeric_keys {
+        let to = numeric_key_to_position(numeric_key);
+        let all_possible_keys = positions_to_all_possible_keys(pos, to, NUMERIC_KEY_GAP);
+
+        if n == 0 {
+            // when no recursion, all sequences are equally good
+            keylen += all_possible_keys[0].len();
+        } else {
+            let all_keylen:Vec<usize> = all_possible_keys.iter().map(|keys|best_keylen_for_direction_keys_n(keys, n, &mut cache)).collect();
+            let minlen = all_keylen.iter().min().unwrap();
+
+            keylen += minlen;
+        }
+
+        pos = to;
+    }
+    keylen
+}
+
+fn calculate_complexity(code:&str, keylen:usize) -> u64 {
     let code_int:u64 = code[0..3].parse().unwrap();
-    code_int * keys.len() as u64
+    code_int * keylen as u64
 }
 
 #[test]
@@ -209,6 +269,9 @@ fn test() {
     assert_eq!(vec_to_str(&best_keys_for_numeric_keys_n(&numeric_keys1, 0)), "<A^A>^^AvvvA");
     assert_eq!(vec_to_str(&best_keys_for_numeric_keys_n(&numeric_keys1, 1)), "v<<A>>^A<A>AvA<^AA>Av<AAA>^A");
     assert_eq!(vec_to_str(&best_keys_for_numeric_keys_n(&numeric_keys1, 2)), "v<A<AA>>^AvAA<^A>Av<<A>>^AvA^Av<A>^Av<<A>^A>AAvA^Av<A<A>>^AAAvA<^A>A");
+    assert_eq!(best_keylen_for_numeric_keys_n(&numeric_keys1, 0), "<A^A>^^AvvvA".len());
+    assert_eq!(best_keylen_for_numeric_keys_n(&numeric_keys1, 1), "v<<A>>^A<A>AvA<^AA>Av<AAA>^A".len());
+    assert_eq!(best_keylen_for_numeric_keys_n(&numeric_keys1, 2), "v<A<AA>>^AvAA<^A>Av<<A>>^AvA^Av<A>^Av<<A>^A>AAvA^Av<A<A>>^AAAvA<^A>A".len());
 
     let result1 = best_keys_for_numeric_keys_n(&numeric_keys1, 2);
 
@@ -234,11 +297,11 @@ fn test() {
     //                                      <v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A
     assert_eq!(vec_to_str(&result4), "v<<A>>^AAv<A<A>>^AAvAA<^A>Av<A>^A<A>Av<A>^A<A>Av<A<A>>^AAvA<^A>A");
 
-    assert_eq!(calculate_complexity(code1, &result1), 68 * 29);
-    assert_eq!(calculate_complexity(code2, &result2), 60 * 980);
-    assert_eq!(calculate_complexity(code3, &result3), 68 * 179);
-    assert_eq!(calculate_complexity(code4, &result4), 64 * 456);
-    assert_eq!(calculate_complexity(code5, &result5), 64 * 379);
+    assert_eq!(calculate_complexity(code1, result1.len()), 68 * 29);
+    assert_eq!(calculate_complexity(code2, result2.len()), 60 * 980);
+    assert_eq!(calculate_complexity(code3, result3.len()), 68 * 179);
+    assert_eq!(calculate_complexity(code4, result4.len()), 64 * 456);
+    assert_eq!(calculate_complexity(code5, result5.len()), 64 * 379);
 
 }
 
@@ -254,7 +317,7 @@ pub fn puzzle() {
 
     let results = lines.iter().
         map(|code| (code, best_keys_for_numeric_keys_n(&code.chars().collect(),2)));
-    let complexity:u64 = results.map(|(code, result)| calculate_complexity(code, &result)).sum();
+    let complexity:u64 = results.map(|(code, result)| calculate_complexity(code, result.len())).sum();
 
     println!("Day 21, Part 1: Sum of 2 level complexities for {} codes is {}", lines.len(), complexity);
 
@@ -262,8 +325,8 @@ pub fn puzzle() {
         let start = Instant::now();
 
         let results2 = lines.iter().
-            map(|code| (code, best_keys_for_numeric_keys_n(&code.chars().collect(), n)));
-        let complexity2:u64 = results2.map(|(code, result)| calculate_complexity(code, &result)).sum();
+            map(|code| (code, best_keylen_for_numeric_keys_n(&code.chars().collect(), n)));
+        let complexity2:u64 = results2.map(|(code, len)| calculate_complexity(code, len)).sum();
 
         println!("Day 21, Part 2: Sum of {} level complexities for {} codes is {} (calculated in {} ms)", n, lines.len(), complexity2, start.elapsed().as_millis());
     }
