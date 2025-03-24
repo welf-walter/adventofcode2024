@@ -135,6 +135,7 @@ Day 21, Part 2: Sum of 15 level complexities for 5 codes is 29905931736 (calcula
 Day 21, Part 2: Sum of 16 level complexities for 5 codes is 74394435964 (calculated in 2986 ms)
 Day 21, Part 2: Sum of 17 level complexities for 5 codes is 185065364652 (calculated in 6613 ms)
 Day 21, Part 2: Sum of 18 level complexities for 5 codes is 460374293764 (calculated in 18681 ms)
+...
  */
 
 type Cache = HashMap<(/*from:*/ Position, /*to:*/ Position, /*n:*/ u32), Vec<DirectionKey>>;
@@ -174,6 +175,20 @@ fn best_keys_for_direction_keys_n(direction_keys:&Vec<DirectionKey>, n:u32, cach
 }
 
 type CacheLen = HashMap<(/*from:*/ Position, /*to:*/ Position, /*n:*/ u32), usize>;
+
+/*
+... and with caching only the length:
+
+Day 21, Part 2: Sum of 15 level complexities for 5 codes is 29905931736 (calculated in 10 ms)
+Day 21, Part 2: Sum of 16 level complexities for 5 codes is 74394435964 (calculated in 9 ms)
+Day 21, Part 2: Sum of 17 level complexities for 5 codes is 185065364652 (calculated in 9 ms)
+Day 21, Part 2: Sum of 18 level complexities for 5 codes is 460374293764 (calculated in 9 ms)
+Day 21, Part 2: Sum of 19 level complexities for 5 codes is 1145236524522 (calculated in 10 ms)
+Day 21, Part 2: Sum of 20 level complexities for 5 codes is 2848923876476 (calculated in 11 ms)
+Day 21, Part 2: Sum of 21 level complexities for 5 codes is 7087049472018 (calculated in 13 ms)
+Day 21, Part 2: Sum of 22 level complexities for 5 codes is 17629934050382 (calculated in 12 ms)
+Day 21, Part 2: Sum of 23 level complexities for 5 codes is 43856665593496 (calculated in 12 ms)
+ */
 
 fn best_keylen_for_direction_keys_n(direction_keys:&Vec<DirectionKey>, n:u32, cache:&mut CacheLen) -> usize {
     let mut keylen: usize = 0;
@@ -321,7 +336,7 @@ pub fn puzzle() {
 
     println!("Day 21, Part 1: Sum of 2 level complexities for {} codes is {}", lines.len(), complexity);
 
-    for n in 3..25 {
+    for n in 3..26 {
         let start = Instant::now();
 
         let results2 = lines.iter().
