@@ -209,12 +209,20 @@ fn best_keys_for_numeric_keys_n(numeric_keys:&Vec<NumericKey>, n:u32) -> Vec<Dir
     for &numeric_key in numeric_keys {
         let to = numeric_key_to_position(numeric_key);
         let all_possible_keys = positions_to_all_possible_keys(pos, to, NUMERIC_KEY_GAP);
-        let all_keys:Vec<Vec<DirectionKey>> = all_possible_keys.iter().map(|keys|best_keys_for_direction_keys_n(keys, n)).collect();
-        let min = all_keys.iter().map(|x|x.len()).min().unwrap();
-        let best_index = all_keys.iter().position(|x| x.len() == min).unwrap();
-        let mut best_keys = all_keys[best_index].clone();
 
-        keys.append(&mut best_keys);
+        if n == 0 {
+            // when no recursion, all sequences are equally good
+            let mut any_keys = all_possible_keys[0].clone();
+            keys.append(&mut any_keys);
+        } else {
+            let all_keys:Vec<Vec<DirectionKey>> = all_possible_keys.iter().map(|keys|best_keys_for_direction_keys_n(keys, n)).collect();
+            let min = all_keys.iter().map(|x|x.len()).min().unwrap();
+            let best_index = all_keys.iter().position(|x| x.len() == min).unwrap();
+            let mut best_keys = all_keys[best_index].clone();
+
+            keys.append(&mut best_keys);
+        }
+
         pos = to;
     }
     keys
@@ -229,44 +237,40 @@ fn calculate_complexity(code:&str, keys3:&Vec<DirectionKey>) -> u32 {
 fn test() {
     let code1 = "029A";
     let numeric_keys1 = code1.chars().collect::<Vec<char>>();
-    let result1 = best_keys_for_numeric_keys(&numeric_keys1);
 
-    assert_eq!(vec_to_str(&result1.keys1), "<A^A>^^AvvvA");
-//    assert_eq!(result.keys2, "v<<A>>^A<A>AvA<^AA>A<vAAA>^A".chars().collect::<Vec<char>>());
-    assert_eq!(vec_to_str(&result1.keys2), "v<<A>>^A<A>AvA<^AA>Av<AAA>^A");
-//    assert_eq!(result.keys3, "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A".chars().collect::<Vec<char>>());
-    assert_eq!(vec_to_str(&result1.keys3), "v<A<AA>>^AvAA<^A>Av<<A>>^AvA^Av<A>^Av<<A>^A>AAvA^Av<A<A>>^AAAvA<^A>A");
-
+    assert_eq!(vec_to_str(&best_keys_for_numeric_keys_n(&numeric_keys1, 0)), "<A^A>^^AvvvA");
     assert_eq!(vec_to_str(&best_keys_for_numeric_keys_n(&numeric_keys1, 1)), "v<<A>>^A<A>AvA<^AA>Av<AAA>^A");
     assert_eq!(vec_to_str(&best_keys_for_numeric_keys_n(&numeric_keys1, 2)), "v<A<AA>>^AvAA<^A>Av<<A>>^AvA^Av<A>^Av<<A>^A>AAvA^Av<A<A>>^AAAvA<^A>A");
 
+    let result1 = best_keys_for_numeric_keys_n(&numeric_keys1, 2);
+
     let code2 = "980A";
-    let result2 = best_keys_for_numeric_keys(&code2.chars().collect());
+    let result2 = best_keys_for_numeric_keys_n(&code2.chars().collect(), 2);
                                           //<v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A
-    assert_eq!(vec_to_str(&result2.keys3), "v<<A>>^AAAvA^Av<A<AA>>^AvAA<^A>Av<A<A>>^AAAvA<^A>Av<A>^A<A>A");
+    assert_eq!(vec_to_str(&result2), "v<<A>>^AAAvA^Av<A<AA>>^AvAA<^A>Av<A<A>>^AAAvA<^A>Av<A>^A<A>A");
 
 
     let code3 = "179A";
-    let result3 = best_keys_for_numeric_keys(&code3.chars().collect());
+    let result3 = best_keys_for_numeric_keys_n(&code3.chars().collect(), 2);
                                           //<v<A>>^A<vA<A>>^AAvAA<^A>A<v<A>>^AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A
-    assert_eq!(vec_to_str(&result3.keys3), "v<<A>>^Av<A<A>>^AAvAA<^A>Av<<A>>^AAvA^Av<A>^AA<A>Av<A<A>>^AAAvA<^A>A");
+    assert_eq!(vec_to_str(&result3), "v<<A>>^Av<A<A>>^AAvAA<^A>Av<<A>>^AAvA^Av<A>^AA<A>Av<A<A>>^AAAvA<^A>A");
 
     let code4 = "456A";
-    let result4 = best_keys_for_numeric_keys(&code4.chars().collect());
-    println!("{}", vec_to_str(&result4.keys3));
+    let result4 = best_keys_for_numeric_keys_n(&code4.chars().collect(), 2);
+    println!("{}", vec_to_str(&result4));
                                           //<v<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<v<A>A>^AAvA<^A>A
-    assert_eq!(vec_to_str(&result4.keys3), "v<<A>>^AAv<A<A>>^AAvAA<^A>Av<A>^A<A>Av<A>^A<A>Av<A<A>>^AAvA<^A>A");
+    assert_eq!(vec_to_str(&result4), "v<<A>>^AAv<A<A>>^AAvAA<^A>Av<A>^A<A>Av<A>^A<A>Av<A<A>>^AAvA<^A>A");
 
     let code5 = "379A";
-    let result5 = best_keys_for_numeric_keys(&code5.chars().collect());
+    let result5 = best_keys_for_numeric_keys_n(&code5.chars().collect(), 2);
     //                                      <v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A
-    assert_eq!(vec_to_str(&result4.keys3), "v<<A>>^AAv<A<A>>^AAvAA<^A>Av<A>^A<A>Av<A>^A<A>Av<A<A>>^AAvA<^A>A");
+    assert_eq!(vec_to_str(&result4), "v<<A>>^AAv<A<A>>^AAvAA<^A>Av<A>^A<A>Av<A>^A<A>Av<A<A>>^AAvA<^A>A");
 
-    assert_eq!(calculate_complexity(code1, &result1.keys3), 68 * 29);
-    assert_eq!(calculate_complexity(code2, &result2.keys3), 60 * 980);
-    assert_eq!(calculate_complexity(code3, &result3.keys3), 68 * 179);
-    assert_eq!(calculate_complexity(code4, &result4.keys3), 64 * 456);
-    assert_eq!(calculate_complexity(code5, &result5.keys3), 64 * 379);
+    assert_eq!(calculate_complexity(code1, &result1), 68 * 29);
+    assert_eq!(calculate_complexity(code2, &result2), 60 * 980);
+    assert_eq!(calculate_complexity(code3, &result3), 68 * 179);
+    assert_eq!(calculate_complexity(code4, &result4), 64 * 456);
+    assert_eq!(calculate_complexity(code5, &result5), 64 * 379);
 
 }
 
@@ -279,8 +283,8 @@ pub fn puzzle() {
     let lines = crate::helper::read_file("input/day21.txt");
 
     let results = lines.iter().
-        map(|code| (code, best_keys_for_numeric_keys(&code.chars().collect())));
-    let complexity:u32 = results.map(|(code, result)| calculate_complexity(code, &result.keys3)).sum();
+        map(|code| (code, best_keys_for_numeric_keys_n(&code.chars().collect(),2)));
+    let complexity:u32 = results.map(|(code, result)| calculate_complexity(code, &result)).sum();
 
     println!("Day 21, Part 1: Sum of complexities for {} codes is {}", lines.len(), complexity);
 
