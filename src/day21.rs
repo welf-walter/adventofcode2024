@@ -1,5 +1,5 @@
 
-use std::char;
+use std::{char, collections::HashMap};
 
 use crate::maps::{left, right, up, down, Position};
 
@@ -104,26 +104,64 @@ fn test_positions_to_all_possible_keys() {
     assert_eq!(vecvec_to_strvec(positions_to_all_possible_keys((2,2),(3,3),(2,3))),vec![">vA"]);
 }
 
+/*
 
-fn best_keys_for_direction_keys_n(direction_keys:&Vec<DirectionKey>, n:u32) -> Vec<DirectionKey> {
+
+Without cache:
+Day 21, Part 1: Sum of 2 level complexities for 5 codes is 222670
+Day 21, Part 2: Sum of 3 level complexities for 5 codes is 539514 (calculated in 4 ms)
+Day 21, Part 2: Sum of 4 level complexities for 5 codes is 1338784 (calculated in 18 ms)
+Day 21, Part 2: Sum of 5 level complexities for 5 codes is 3301126 (calculated in 79 ms)
+Day 21, Part 2: Sum of 6 level complexities for 5 codes is 8213448 (calculated in 323 ms)
+Day 21, Part 2: Sum of 7 level complexities for 5 codes is 20399076 (calculated in 1354 ms)
+Day 21, Part 2: Sum of 8 level complexities for 5 codes is 50735734 (calculated in 5585 ms)
+Day 21, Part 2: Sum of 9 level complexities for 5 codes is 126219900 (calculated in 23029 ms)
+
+With cache:
+Day 21, Part 1: Sum of 2 level complexities for 5 codes is 222670
+Day 21, Part 2: Sum of 3 level complexities for 5 codes is 539514 (calculated in 1 ms)
+Day 21, Part 2: Sum of 4 level complexities for 5 codes is 1338784 (calculated in 2 ms)
+Day 21, Part 2: Sum of 5 level complexities for 5 codes is 3301126 (calculated in 3 ms)
+Day 21, Part 2: Sum of 6 level complexities for 5 codes is 8213448 (calculated in 4 ms)
+Day 21, Part 2: Sum of 7 level complexities for 5 codes is 20399076 (calculated in 6 ms)
+Day 21, Part 2: Sum of 8 level complexities for 5 codes is 50735734 (calculated in 6 ms)
+Day 21, Part 2: Sum of 9 level complexities for 5 codes is 126219900 (calculated in 9 ms)
+Day 21, Part 2: Sum of 10 level complexities for 5 codes is 313902820 (calculated in 14 ms)
+Day 21, Part 2: Sum of 11 level complexities for 5 codes is 781007860 (calculated in 29 ms)
+Day 21, Part 2: Sum of 12 level complexities for 5 codes is 1942592046 (calculated in 64 ms)
+thread 'main' panicked at /rustc/3f5fd8dd41153bc5fdca9427e9e05be2c767ba23/library/core/src/iter/traits/accum.rs:149:1:
+attempt to add with overflow
+
+ */
+
+type Cache = HashMap<(/*from:*/ Position, /*to:*/ Position, /*n:*/ u32), Vec<DirectionKey>>;
+
+fn best_keys_for_direction_keys_n(direction_keys:&Vec<DirectionKey>, n:u32, cache:&mut Cache) -> Vec<DirectionKey> {
     let mut keys = Vec::new();
     let mut pos = DIRECTION_KEY_START;
     for &direction_key in direction_keys {
         let to = direction_key_to_position(direction_key);
-        let all_possible_keys = positions_to_all_possible_keys(pos, to, DIRECTION_KEY_GAP);
-
-        if n == 1 {
-            // when at end of recursion, all sequences are equally good
-            let mut any_keys = all_possible_keys[0].clone();
-            keys.append(&mut any_keys);
-        } else {
-            let all_keys:Vec<Vec<DirectionKey>> =
-            all_possible_keys.iter().map(|keys|best_keys_for_direction_keys_n(keys, n-1)).collect();
-            let min = all_keys.iter().map(|x|x.len()).min().unwrap();
-            let best_index = all_keys.iter().position(|x| x.len() == min).unwrap();
-            let mut best_keys = all_keys[best_index].clone();
-
+        if cache.contains_key(&(pos, to, n)) {
+            let mut best_keys = cache.get(&(pos, to, n)).unwrap().clone();
             keys.append(&mut best_keys);
+        } else {
+            let all_possible_keys = positions_to_all_possible_keys(pos, to, DIRECTION_KEY_GAP);
+
+            if n == 1 {
+                // when at end of recursion, all sequences are equally good
+                let mut any_keys = all_possible_keys[0].clone();
+                cache.insert((pos, to, n), any_keys.clone());
+                keys.append(&mut any_keys);
+            } else {
+                let all_keys:Vec<Vec<DirectionKey>> =
+                all_possible_keys.iter().map(|keys|best_keys_for_direction_keys_n(keys, n-1, cache)).collect();
+                let min = all_keys.iter().map(|x|x.len()).min().unwrap();
+                let best_index = all_keys.iter().position(|x| x.len() == min).unwrap();
+                let mut best_keys = all_keys[best_index].clone();
+
+                cache.insert((pos, to, n), best_keys.clone());
+                keys.append(&mut best_keys);
+            }
         }
 
         pos = to;
@@ -135,6 +173,7 @@ fn best_keys_for_direction_keys_n(direction_keys:&Vec<DirectionKey>, n:u32) -> V
 fn best_keys_for_numeric_keys_n(numeric_keys:&Vec<NumericKey>, n:u32) -> Vec<DirectionKey> {
     let mut keys = Vec::new();
     let mut pos = NUMERIC_KEY_START;
+    let mut cache = Cache::new();
     for &numeric_key in numeric_keys {
         let to = numeric_key_to_position(numeric_key);
         let all_possible_keys = positions_to_all_possible_keys(pos, to, NUMERIC_KEY_GAP);
@@ -144,7 +183,7 @@ fn best_keys_for_numeric_keys_n(numeric_keys:&Vec<NumericKey>, n:u32) -> Vec<Dir
             let mut any_keys = all_possible_keys[0].clone();
             keys.append(&mut any_keys);
         } else {
-            let all_keys:Vec<Vec<DirectionKey>> = all_possible_keys.iter().map(|keys|best_keys_for_direction_keys_n(keys, n)).collect();
+            let all_keys:Vec<Vec<DirectionKey>> = all_possible_keys.iter().map(|keys|best_keys_for_direction_keys_n(keys, n, &mut cache)).collect();
             let min = all_keys.iter().map(|x|x.len()).min().unwrap();
             let best_index = all_keys.iter().position(|x| x.len() == min).unwrap();
             let mut best_keys = all_keys[best_index].clone();
