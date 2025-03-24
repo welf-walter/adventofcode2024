@@ -176,6 +176,50 @@ fn best_keys_for_numeric_keys(numeric_keys:&Vec<NumericKey>) -> Result {
     Result{keys1, keys2, keys3}
 }
 
+fn best_keys_for_direction_keys_n(direction_keys:&Vec<DirectionKey>, n:u32) -> Vec<DirectionKey> {
+    let mut keys = Vec::new();
+    let mut pos = DIRECTION_KEY_START;
+    for &direction_key in direction_keys {
+        let to = direction_key_to_position(direction_key);
+        let all_possible_keys = positions_to_all_possible_keys(pos, to, DIRECTION_KEY_GAP);
+
+        if n == 1 {
+            // when at end of recursion, all sequences are equally good
+            let mut any_keys = all_possible_keys[0].clone();
+            keys.append(&mut any_keys);
+        } else {
+            let all_keys:Vec<Vec<DirectionKey>> =
+            all_possible_keys.iter().map(|keys|best_keys_for_direction_keys_n(keys, n-1)).collect();
+            let min = all_keys.iter().map(|x|x.len()).min().unwrap();
+            let best_index = all_keys.iter().position(|x| x.len() == min).unwrap();
+            let mut best_keys = all_keys[best_index].clone();
+
+            keys.append(&mut best_keys);
+        }
+
+        pos = to;
+    }
+
+    keys
+}
+
+fn best_keys_for_numeric_keys_n(numeric_keys:&Vec<NumericKey>, n:u32) -> Vec<DirectionKey> {
+    let mut keys = Vec::new();
+    let mut pos = NUMERIC_KEY_START;
+    for &numeric_key in numeric_keys {
+        let to = numeric_key_to_position(numeric_key);
+        let all_possible_keys = positions_to_all_possible_keys(pos, to, NUMERIC_KEY_GAP);
+        let all_keys:Vec<Vec<DirectionKey>> = all_possible_keys.iter().map(|keys|best_keys_for_direction_keys_n(keys, n)).collect();
+        let min = all_keys.iter().map(|x|x.len()).min().unwrap();
+        let best_index = all_keys.iter().position(|x| x.len() == min).unwrap();
+        let mut best_keys = all_keys[best_index].clone();
+
+        keys.append(&mut best_keys);
+        pos = to;
+    }
+    keys
+}
+
 fn calculate_complexity(code:&str, keys3:&Vec<DirectionKey>) -> u32 {
     let code_int:u32 = code[0..3].parse().unwrap();
     code_int * keys3.len() as u32
@@ -192,6 +236,9 @@ fn test() {
     assert_eq!(vec_to_str(&result1.keys2), "v<<A>>^A<A>AvA<^AA>Av<AAA>^A");
 //    assert_eq!(result.keys3, "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A".chars().collect::<Vec<char>>());
     assert_eq!(vec_to_str(&result1.keys3), "v<A<AA>>^AvAA<^A>Av<<A>>^AvA^Av<A>^Av<<A>^A>AAvA^Av<A<A>>^AAAvA<^A>A");
+
+    assert_eq!(vec_to_str(&best_keys_for_numeric_keys_n(&numeric_keys1, 1)), "v<<A>>^A<A>AvA<^AA>Av<AAA>^A");
+    assert_eq!(vec_to_str(&best_keys_for_numeric_keys_n(&numeric_keys1, 2)), "v<A<AA>>^AvAA<^A>Av<<A>>^AvA^Av<A>^Av<<A>^A>AAvA^Av<A<A>>^AAAvA<^A>A");
 
     let code2 = "980A";
     let result2 = best_keys_for_numeric_keys(&code2.chars().collect());
