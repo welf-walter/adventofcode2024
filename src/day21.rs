@@ -86,10 +86,12 @@ fn positions_to_all_possible_keys(from:Position, to:Position, invalid_position:P
     all_keys
 }
 
+#[cfg(test)]
 fn vecvec_to_strvec(vecvec:Vec<Vec<DirectionKey>>) -> Vec<String> {
     vecvec.iter().map(|vec| String::from_iter(vec.iter())).collect()
 }
 
+#[cfg(test)]
 fn vec_to_str(vec:&Vec<DirectionKey>) -> String {
     String::from_iter(vec.iter())
 }
@@ -144,7 +146,9 @@ fn best_keys_for_direction_keys1(direction_keys:&Vec<DirectionKey>) -> Result2 {
 }
 
 struct Result {
+    #[allow(dead_code)]
     keys1:Vec<DirectionKey>,
+    #[allow(dead_code)]
     keys2:Vec<DirectionKey>,
     keys3:Vec<DirectionKey>
 }
@@ -216,5 +220,21 @@ fn test() {
     assert_eq!(calculate_complexity(code3, &result3.keys3), 68 * 179);
     assert_eq!(calculate_complexity(code4, &result4.keys3), 64 * 456);
     assert_eq!(calculate_complexity(code5, &result5.keys3), 64 * 379);
+
+}
+
+
+//////////////////////////////////////////
+/// Puzzle
+//////////////////////////////////////////
+
+pub fn puzzle() {
+    let lines = crate::helper::read_file("input/day21.txt");
+
+    let results = lines.iter().
+        map(|code| (code, best_keys_for_numeric_keys(&code.chars().collect())));
+    let complexity:u32 = results.map(|(code, result)| calculate_complexity(code, &result.keys3)).sum();
+
+    println!("Day 21, Part 1: Sum of complexities for {} codes is {}", lines.len(), complexity);
 
 }
