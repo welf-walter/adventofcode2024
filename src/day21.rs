@@ -196,9 +196,9 @@ fn best_keys_for_numeric_keys_n(numeric_keys:&Vec<NumericKey>, n:u32) -> Vec<Dir
     keys
 }
 
-fn calculate_complexity(code:&str, keys:&Vec<DirectionKey>) -> u32 {
-    let code_int:u32 = code[0..3].parse().unwrap();
-    code_int * keys.len() as u32
+fn calculate_complexity(code:&str, keys:&Vec<DirectionKey>) -> u64 {
+    let code_int:u64 = code[0..3].parse().unwrap();
+    code_int * keys.len() as u64
 }
 
 #[test]
@@ -254,7 +254,7 @@ pub fn puzzle() {
 
     let results = lines.iter().
         map(|code| (code, best_keys_for_numeric_keys_n(&code.chars().collect(),2)));
-    let complexity:u32 = results.map(|(code, result)| calculate_complexity(code, &result)).sum();
+    let complexity:u64 = results.map(|(code, result)| calculate_complexity(code, &result)).sum();
 
     println!("Day 21, Part 1: Sum of 2 level complexities for {} codes is {}", lines.len(), complexity);
 
@@ -263,7 +263,7 @@ pub fn puzzle() {
 
         let results2 = lines.iter().
             map(|code| (code, best_keys_for_numeric_keys_n(&code.chars().collect(), n)));
-        let complexity2:u32 = results2.map(|(code, result)| calculate_complexity(code, &result)).sum();
+        let complexity2:u64 = results2.map(|(code, result)| calculate_complexity(code, &result)).sum();
 
         println!("Day 21, Part 2: Sum of {} level complexities for {} codes is {} (calculated in {} ms)", n, lines.len(), complexity2, start.elapsed().as_millis());
     }
