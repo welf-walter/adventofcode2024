@@ -37,6 +37,35 @@ impl Iterator for Secret {
     }
 }
 
+type Price = i32;
+type Changes = [Price; 4];
+const INVALID_CHANGE : Price = -99;
+
+struct PriceIter {
+    secret:Secret,
+    changes:Changes
+}
+
+fn prices(secret: Secret) -> PriceIter { PriceIter { secret, changes:[INVALID_CHANGE, INVALID_CHANGE, INVALID_CHANGE, INVALID_CHANGE] } }
+
+fn price(number: Number) -> Price { ( number % 10 ) as Price }
+
+impl Iterator for PriceIter {
+    // We can refer to this type using Self::Item
+    type Item = (Price, Changes);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let old = price(self.secret.number);
+        let new = price(self.secret.next().unwrap());
+        self.changes[0] = self.changes[1];
+        self.changes[1] = self.changes[2];
+        self.changes[2] = self.changes[3];
+        self.changes[3] = new - old;
+        Some((new, self.changes))
+    }
+}
+
+
 #[test]
 fn test_iterator() {
     assert_eq!(mix(42, 15), 37);
@@ -51,6 +80,24 @@ fn test_iterator() {
 
     assert_eq!([1, 10, 100, 2024].iter().map(|initial| secret(*initial).nth(2000-1).unwrap()).sum::<Number>(),
         37327623);
+
+    // part 2
+    assert_eq!(secret(123).take(10).map(price).collect::<Vec<_>>(),
+    vec![/* 3, */ 0, 6, 5, 4, 4, 6, 4, 4, 2, 4]);
+
+    assert_eq!(prices(secret(123)).take(9).collect::<Vec<_>>(),
+      vec![
+        /* 3 */
+        (0, [INVALID_CHANGE, INVALID_CHANGE, INVALID_CHANGE, -3]),
+        (6, [INVALID_CHANGE, INVALID_CHANGE, -3, 6]),
+        (5, [INVALID_CHANGE, -3, 6, -1]),
+        (4, [-3, 6, -1, -1]),
+        (4, [6, -1, -1, 0]),
+        (6, [-1, -1, 0, 2]),
+        (4, [-1, 0, 2, -2]),
+        (4, [0, 2, -2, 0]),
+        (2, [2, -2, 0, -2])
+      ]);
 
 }
 
