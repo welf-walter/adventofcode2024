@@ -53,3 +53,17 @@ fn test_iterator() {
         37327623);
 
 }
+
+//////////////////////////////////////////
+/// Puzzle
+//////////////////////////////////////////
+
+pub fn puzzle() {
+    let lines = crate::helper::read_file("input/day22.txt");
+
+    let initials = lines.into_iter().map(|line| line.parse::<Number>().unwrap());
+    let sum:Number = initials.map(|initial| secret(initial).nth(2000-1).unwrap()).sum();
+
+    println!("Day 22, Part 1: Sum of 2000th secret is {}", sum);
+
+}
