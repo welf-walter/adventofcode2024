@@ -42,6 +42,14 @@ fn test_iterator() {
     assert_eq!(mix(42, 15), 37);
     assert_eq!(prune(100000000), 16113920);
 
-    assert_eq!(secret(123).take(10).collect::<Vec<_>>(), 
-      vec![15887950, 16495136, 527345, 704524, 1553684, 12683156, 11100544, 12249484, 7753432, 5908254])
+    assert_eq!(secret(123).take(10).collect::<Vec<_>>(),
+      vec![15887950, 16495136, 527345, 704524, 1553684, 12683156, 11100544, 12249484, 7753432, 5908254]);
+    assert_eq!(secret(123).nth(10-1), Some(5908254));
+
+    assert_eq!([1, 10, 100, 2024].iter().map(|initial| secret(*initial).nth(2000-1).unwrap()).collect::<Vec<_>>(),
+        vec![8685429, 4700978, 15273692, 8667524]);
+
+    assert_eq!([1, 10, 100, 2024].iter().map(|initial| secret(*initial).nth(2000-1).unwrap()).sum::<Number>(),
+        37327623);
+
 }
