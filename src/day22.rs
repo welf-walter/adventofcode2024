@@ -72,6 +72,38 @@ fn monkey_deal(secret:Secret, changes_to_sell:Changes) -> Price {
     }
 }
 
+struct AllPossibleChangesIterator {
+    changes:Changes
+}
+
+impl Iterator for AllPossibleChangesIterator {
+    // We can refer to this type using Self::Item
+    type Item = Changes;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.changes[0] += 1;
+        if self.changes[0] < 10 { return Some(self.changes); }
+
+        self.changes[0] = -9;
+        self.changes[1] += 1;
+        if self.changes[1] < 10 { return Some(self.changes); }
+
+        self.changes[1] = -9;
+        self.changes[2] += 1;
+        if self.changes[2] < 10 { return Some(self.changes); }
+
+        self.changes[2] = -9;
+        self.changes[3] += 1;
+        if self.changes[3] < 10 { return Some(self.changes); }
+
+        return None;
+    }
+}
+
+fn all_possible_changes() -> AllPossibleChangesIterator {
+    AllPossibleChangesIterator { changes: [-10, -9, -9, -9] }
+}
+
 #[test]
 fn test_iterator() {
     assert_eq!(mix(42, 15), 37);
@@ -113,6 +145,22 @@ fn test_iterator() {
     assert_eq!(monkey_deal(secret(2), changes_to_sell2), 7);
     assert_eq!(monkey_deal(secret(3), changes_to_sell2), 0);
     assert_eq!(monkey_deal(secret(2024), changes_to_sell2), 9);
+
+    assert_eq!(all_possible_changes().take(3).collect::<Vec<_>>(),
+        vec![
+            [-9,-9,-9,-9],
+            [-8,-9,-9,-9],
+            [-7,-9,-9,-9]
+        ]);
+
+    assert_eq!(all_possible_changes().skip(18).take(3).collect::<Vec<_>>(),
+        vec![
+            [ 9,-9,-9,-9],
+            [-9,-8,-9,-9],
+            [-8,-8,-9,-9]
+        ]);
+
+    assert_eq!(all_possible_changes().count(), 19*19*19*19);
 
 }
 
