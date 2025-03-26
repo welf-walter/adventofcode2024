@@ -65,6 +65,12 @@ impl Iterator for PriceIter {
     }
 }
 
+fn monkey_deal(secret:Secret, changes_to_sell:Changes) -> Price {
+    match prices(secret).take(2000).find(|price_and_change| price_and_change.1 == changes_to_sell) {
+        None => 0,
+        Some(price_and_change) => price_and_change.0
+    }
+}
 
 #[test]
 fn test_iterator() {
@@ -98,6 +104,15 @@ fn test_iterator() {
         (4, [0, 2, -2, 0]),
         (2, [2, -2, 0, -2])
       ]);
+
+    let changes_to_sell1 = [-1, -1, 0, 2];
+    assert_eq!(monkey_deal(secret(123), changes_to_sell1), 6);
+
+    let changes_to_sell2 = [-2, 1, -1, 3];
+    assert_eq!(monkey_deal(secret(1), changes_to_sell2), 7);
+    assert_eq!(monkey_deal(secret(2), changes_to_sell2), 7);
+    assert_eq!(monkey_deal(secret(3), changes_to_sell2), 0);
+    assert_eq!(monkey_deal(secret(2024), changes_to_sell2), 9);
 
 }
 
