@@ -15,6 +15,7 @@ fn next(a: Number) -> Number {
     d
 }
 
+#[derive(Clone)]
 struct Secret {
     number:Number
 }
@@ -104,6 +105,12 @@ fn all_possible_changes() -> AllPossibleChangesIterator {
     AllPossibleChangesIterator { changes: [-10, -9, -9, -9] }
 }
 
+fn find_best_changes(secrets:Vec<Secret>) -> (Changes, Price) {
+    all_possible_changes().map(|changes|
+        (changes, secrets.iter().map(|secret| monkey_deal(secret.clone(), changes)).sum())
+    ).max_by_key(|(_changes,price)| *price).unwrap()
+}
+
 #[test]
 fn test_iterator() {
     assert_eq!(mix(42, 15), 37);
@@ -161,6 +168,9 @@ fn test_iterator() {
         ]);
 
     assert_eq!(all_possible_changes().count(), 19*19*19*19);
+
+    let secrets = vec![secret(1), secret(2), secret(3), secret(2024)];
+    assert_eq!(find_best_changes(secrets), (changes_to_sell2, 7+7+9));
 
 }
 
